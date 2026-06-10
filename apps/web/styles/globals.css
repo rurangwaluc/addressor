@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800;900&display=swap");
+
+:root {
+  --bg: #f6f6f6;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-strong: #ffffff;
+  --text: #101010;
+  --muted: rgba(16, 16, 16, 0.62);
+  --border: rgba(16, 16, 16, 0.12);
+  --primary: #1ca8cb;
+  --primary-text: #ffffff;
+  --accent: #1ca8cb;
+  --accent-soft: rgba(28, 168, 203, 0.12);
+  --success: #147a52;
+  --danger: #b42318;
+
+  --auth-bg-glow-one: rgba(28, 168, 203, 0.14);
+  --auth-bg-glow-two: rgba(16, 16, 16, 0.1);
+  --auth-panel-gradient-one: #1ca8cb;
+  --auth-panel-gradient-two: #145d74;
+  --auth-panel-gradient-three: #101010;
+  --auth-panel-light: rgba(255, 255, 255, 0.22);
+  --auth-panel-shadow: rgba(0, 0, 0, 0.42);
+  --auth-page-bg: #f6f6f6;
+  --auth-page-overlay: rgba(246, 246, 246, 0.68);
+}
+
+.dark {
+  --bg: #292929;
+  --surface: rgba(41, 41, 41, 0.82);
+  --surface-strong: #303030;
+  --text: #f6f6f6;
+  --muted: rgba(246, 246, 246, 0.68);
+  --border: rgba(246, 246, 246, 0.13);
+  --primary: #1ca8cb;
+  --primary-text: #ffffff;
+  --accent: #1ca8cb;
+  --accent-soft: rgba(28, 168, 203, 0.16);
+  --success: #4ade80;
+  --danger: #fb7185;
+
+  --auth-bg-glow-one: rgba(28, 168, 203, 0.16);
+  --auth-bg-glow-two: rgba(246, 246, 246, 0.06);
+  --auth-panel-gradient-one: #145d74;
+  --auth-panel-gradient-two: #123946;
+  --auth-panel-gradient-three: #111111;
+  --auth-panel-light: rgba(246, 246, 246, 0.12);
+  --auth-panel-shadow: rgba(0, 0, 0, 0.62);
+  --auth-page-bg: #292929;
+  --auth-page-overlay: rgba(41, 41, 41, 0.72);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  font-family: "Quicksand", system-ui, sans-serif;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(246, 246, 246, 0.46), rgba(246, 246, 246, 0.46)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(16, 16, 16, 0.22) 0 16px,
+      transparent 16px 34px,
+      rgba(16, 16, 16, 0.22) 34px 50px,
+      transparent 50px 86px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 18px,
+      rgba(16, 16, 16, 0.18) 18px 34px,
+      transparent 34px 70px
+    );
+  background-size: auto, 120px 120px, 120px 120px;
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(41, 41, 41, 0.46), rgba(41, 41, 41, 0.46)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(246, 246, 246, 0.26) 0 16px,
+      transparent 16px 34px,
+      rgba(246, 246, 246, 0.26) 34px 50px,
+      transparent 50px 86px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 18px,
+      rgba(246, 246, 246, 0.22) 18px 34px,
+      transparent 34px 70px
+    );
+  background-size: auto, 120px 120px, 120px 120px;
+  background-attachment: fixed;
+}
+
+input,
+button {
+  font: inherit;
+}
+
+.imigongo-pattern {
+  background-image:
+    linear-gradient(135deg, currentColor 18px, transparent 18px),
+    linear-gradient(225deg, currentColor 18px, transparent 18px),
+    linear-gradient(45deg, currentColor 18px, transparent 18px),
+    linear-gradient(315deg, currentColor 18px, transparent 18px);
+  background-position:
+    34px 0,
+    34px 0,
+    0 0,
+    0 0;
+  background-size: 68px 68px;
+  background-repeat: repeat;
+  color: rgba(16, 16, 16, 0.26);
+}
+
+.dark .imigongo-pattern {
+  color: rgba(246, 246, 246, 0.26);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text) !important;
+  box-shadow: 0 0 0 1000px var(--surface) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+input::placeholder {
+  color: var(--muted);
+  opacity: 0.78;
+}

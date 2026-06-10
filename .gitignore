@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+dist/
+build/
+out/
+.expo/
+.expo-shared/
+web-build/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# React Native / Expo
+android/
+ios/
+
+# cache
+.cache/
+.turbo/
+.parcel-cache/
+
+# misc
+coverage/

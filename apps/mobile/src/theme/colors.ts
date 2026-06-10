@@ -1,0 +1,43 @@
+export const lightTheme = {
+  mode: "light",
+  bg: "#F6F6F6",
+  surface: "rgba(255,255,255,0.94)",
+  surfaceSoft: "rgba(255,255,255,0.72)",
+  surfaceStrong: "#FFFFFF",
+  text: "#101010",
+  muted: "rgba(16,16,16,0.62)",
+  border: "rgba(16,16,16,0.12)",
+  primary: "#1CA8CB",
+  primaryText: "#FFFFFF",
+  accent: "#1CA8CB",
+  accentSoft: "rgba(28,168,203,0.12)",
+  success: "#147A52",
+  danger: "#B42318",
+  darkPanel: "#292929",
+  bluePanel: "#263F66",
+  patternStrong: "rgba(16,16,16,0.18)",
+  patternSoft: "rgba(16,16,16,0.1)",
+} as const;
+
+export const darkTheme = {
+  mode: "dark",
+  bg: "#292929",
+  surface: "rgba(41,41,41,0.94)",
+  surfaceSoft: "rgba(35,35,35,0.76)",
+  surfaceStrong: "#303030",
+  text: "#F6F6F6",
+  muted: "rgba(246,246,246,0.68)",
+  border: "rgba(246,246,246,0.13)",
+  primary: "#1CA8CB",
+  primaryText: "#FFFFFF",
+  accent: "#1CA8CB",
+  accentSoft: "rgba(28,168,203,0.16)",
+  success: "#4ADE80",
+  danger: "#FB7185",
+  darkPanel: "#1F1F1F",
+  bluePanel: "#24334A",
+  patternStrong: "rgba(246,246,246,0.2)",
+  patternSoft: "rgba(246,246,246,0.1)",
+} as const;
+
+export type AddressorTheme = typeof lightTheme | typeof darkTheme;

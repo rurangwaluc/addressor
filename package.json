@@ -1,0 +1,21 @@
+{
+  "name": "addressor",
+  "private": true,
+  "packageManager": "pnpm@10.28.1",
+  "scripts": {
+    "dev:api": "pnpm --filter @addressor/api dev",
+    "build:api": "pnpm --filter @addressor/api build",
+    "start:api": "pnpm --filter @addressor/api start",
+    "dev:web": "pnpm --filter @addressor/web dev",
+    "build:web": "pnpm --filter @addressor/web build",
+    "start:web": "pnpm --filter @addressor/web start",
+    "dev:mobile": "pnpm --filter @addressor/mobile dev",
+    "android:mobile": "pnpm --filter @addressor/mobile android",
+    "ios:mobile": "pnpm --filter @addressor/mobile ios",
+    "web:mobile": "pnpm --filter @addressor/mobile web",
+    "check:api": "pnpm --filter @addressor/api build",
+    "check:web": "pnpm --filter @addressor/web build",
+    "check:mobile": "pnpm --filter @addressor/mobile exec tsc --noEmit",
+    "check": "pnpm check:api && pnpm check:web && pnpm check:mobile"
+  }
+}
