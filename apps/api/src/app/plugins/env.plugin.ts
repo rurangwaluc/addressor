@@ -12,6 +12,8 @@ const envSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url(),
 
+  GOOGLE_CLIENT_ID: z.string().optional(),
+
   REDIS_URL: z.string().optional(),
 
   RESEND_API_KEY: z.string().optional(),
