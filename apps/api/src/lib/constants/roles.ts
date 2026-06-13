@@ -7,7 +7,7 @@ export const PLATFORM_ROLES = {
 export const BUSINESS_ROLES = {
   OWNER: "business_owner",
   MANAGER: "business_manager",
-  EDITOR: "business_editor",
+  STAFF: "business_staff",
 } as const;
 
 export const USER_ROLES = {

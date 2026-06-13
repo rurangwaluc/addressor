@@ -29,9 +29,7 @@ export type PlatformRoleKey =
 
 export type BusinessRoleKey =
   | "business_owner"
-  | "business_admin"
   | "business_manager"
-  | "business_editor"
   | "business_staff";
 
 export type AppRoleKey =

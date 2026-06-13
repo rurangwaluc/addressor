@@ -51,6 +51,12 @@ const PLATFORM_ROLES: PlatformRoleKey[] = [
   "platform_support",
 ];
 
+const BUSINESS_ROLES: BusinessRoleKey[] = [
+  "business_owner",
+  "business_manager",
+  "business_staff",
+];
+
 const PLATFORM_ROLE_PRIORITY: Record<PlatformRoleKey, number> = {
   platform_owner: 3,
   platform_admin: 2,
@@ -70,7 +76,9 @@ const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRoleKey, string[]> = {
   platform_admin: [
     "platform.manage_businesses",
     "platform.manage_users",
-    "platform.manage_revenue",
+    "platform.manage_reports",
+    "platform.manage_featured_places",
+    "platform.handle_business_reviews",
   ],
   platform_support: [
     "platform.view_businesses",
@@ -84,27 +92,22 @@ const BUSINESS_ROLE_PERMISSIONS: Record<BusinessRoleKey, string[]> = {
     "business.full_access",
     "business.manage_profile",
     "business.manage_team",
-    "business.manage_branches",
+    "business.manage_locations",
     "business.manage_content",
     "business.manage_availability",
-  ],
-  business_admin: [
-    "business.manage_profile",
-    "business.manage_team",
-    "business.manage_branches",
-    "business.manage_content",
-    "business.manage_availability",
+    "business.view_analytics",
+    "business.manage_billing",
   ],
   business_manager: [
+    "business.manage_profile",
     "business.manage_content",
     "business.manage_availability",
-    "business.view_dashboard",
+    "business.view_analytics",
   ],
-  business_editor: [
-    "business.manage_content",
+  business_staff: [
     "business.view_dashboard",
+    "business.view_listing_status",
   ],
-  business_staff: ["business.view_dashboard"],
 };
 
 type SessionMetadata = {
@@ -172,13 +175,7 @@ function isPlatformRole(role: string): role is PlatformRoleKey {
 }
 
 function isBusinessRole(role: string): role is BusinessRoleKey {
-  return [
-    "business_owner",
-    "business_admin",
-    "business_manager",
-    "business_editor",
-    "business_staff",
-  ].includes(role);
+  return BUSINESS_ROLES.includes(role as BusinessRoleKey);
 }
 
 function mapUser(params: {
@@ -621,9 +618,7 @@ export const authService = {
     const platformRoles = globalRoleRows
       .map((row) => row.key)
       .filter(isPlatformRole)
-      .sort(
-        (a, b) => PLATFORM_ROLE_PRIORITY[b] - PLATFORM_ROLE_PRIORITY[a],
-      );
+      .sort((a, b) => PLATFORM_ROLE_PRIORITY[b] - PLATFORM_ROLE_PRIORITY[a]);
 
     const platformRole = platformRoles[0] ?? null;
 

@@ -1,6 +1,5 @@
 export type BusinessRole =
   | "business_owner"
-  | "business_admin"
   | "business_manager"
   | "business_staff";
 
