@@ -8,16 +8,27 @@ import {
   authSessions,
   authVerificationOtps,
 } from "../../db/schema/auth.schema.js";
+import {
+  businesses,
+  businessTeamMembers,
+} from "../../db/schema/businesses.schema.js";
+import { roles, userRoles } from "../../db/schema/roles.schema.js";
 import { users, userProfiles } from "../../db/schema/users.schema.js";
 import { sendEmailOtp } from "../../lib/email/resend.js";
 import { sendSmsOtp } from "../../lib/sms/twilio.js";
 import { normalizeRwandaPhone } from "../../lib/utils/phone.js";
 import type {
+  AppRoleKey,
+  AuthAccessContext,
+  AuthBusinessAccessItem,
+  AuthRoleItem,
   AuthUser,
+  BusinessRoleKey,
   ForgotPasswordSchemaType,
   GoogleLoginSchemaType,
   LoginResponse,
   LoginSchemaType,
+  PlatformRoleKey,
   RefreshSessionSchemaType,
   ResetPasswordSchemaType,
   SessionTokens,
@@ -33,6 +44,68 @@ const PASSWORD_SALT_ROUNDS = 12;
 const ACCESS_TOKEN_TTL_MINUTES = 15;
 const REFRESH_TOKEN_TTL_DAYS = 30;
 const PASSWORD_RESET_TTL_MINUTES = 30;
+
+const PLATFORM_ROLES: PlatformRoleKey[] = [
+  "platform_owner",
+  "platform_admin",
+  "platform_support",
+];
+
+const PLATFORM_ROLE_PRIORITY: Record<PlatformRoleKey, number> = {
+  platform_owner: 3,
+  platform_admin: 2,
+  platform_support: 1,
+};
+
+const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRoleKey, string[]> = {
+  platform_owner: [
+    "platform.full_access",
+    "platform.manage_admins",
+    "platform.manage_support",
+    "platform.manage_businesses",
+    "platform.manage_users",
+    "platform.manage_revenue",
+    "platform.manage_settings",
+  ],
+  platform_admin: [
+    "platform.manage_businesses",
+    "platform.manage_users",
+    "platform.manage_revenue",
+  ],
+  platform_support: [
+    "platform.view_businesses",
+    "platform.view_users",
+    "platform.support_actions",
+  ],
+};
+
+const BUSINESS_ROLE_PERMISSIONS: Record<BusinessRoleKey, string[]> = {
+  business_owner: [
+    "business.full_access",
+    "business.manage_profile",
+    "business.manage_team",
+    "business.manage_branches",
+    "business.manage_content",
+    "business.manage_availability",
+  ],
+  business_admin: [
+    "business.manage_profile",
+    "business.manage_team",
+    "business.manage_branches",
+    "business.manage_content",
+    "business.manage_availability",
+  ],
+  business_manager: [
+    "business.manage_content",
+    "business.manage_availability",
+    "business.view_dashboard",
+  ],
+  business_editor: [
+    "business.manage_content",
+    "business.view_dashboard",
+  ],
+  business_staff: ["business.view_dashboard"],
+};
 
 type SessionMetadata = {
   userAgent?: string;
@@ -88,6 +161,24 @@ function hashValue(value: string) {
 
 function hashOtp(otp: string) {
   return hashValue(otp);
+}
+
+function dedupeStrings(values: string[]) {
+  return Array.from(new Set(values));
+}
+
+function isPlatformRole(role: string): role is PlatformRoleKey {
+  return PLATFORM_ROLES.includes(role as PlatformRoleKey);
+}
+
+function isBusinessRole(role: string): role is BusinessRoleKey {
+  return [
+    "business_owner",
+    "business_admin",
+    "business_manager",
+    "business_editor",
+    "business_staff",
+  ].includes(role);
 }
 
 function mapUser(params: {
@@ -155,6 +246,35 @@ async function createUserProfileIfMissing(userId: string) {
     .returning();
 
   return inserted[0] ?? null;
+}
+
+async function assignRoleIfMissing(userId: string, roleKey: AppRoleKey) {
+  const matchingRoles = await db
+    .select()
+    .from(roles)
+    .where(eq(roles.key, roleKey))
+    .limit(1);
+
+  const role = matchingRoles[0];
+
+  if (!role) {
+    return;
+  }
+
+  const existing = await db
+    .select()
+    .from(userRoles)
+    .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, role.id)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return;
+  }
+
+  await db.insert(userRoles).values({
+    userId,
+    roleId: role.id,
+  });
 }
 
 function getOtpExpiryDate() {
@@ -423,6 +543,7 @@ async function getOrCreateGoogleUser(tokenInfo: GoogleTokenInfo) {
   }
 
   await createUserProfileIfMissing(createdUser.id);
+  await assignRoleIfMissing(createdUser.id, "customer");
 
   await db.insert(authOauthAccounts).values({
     userId: createdUser.id,
@@ -436,6 +557,114 @@ async function getOrCreateGoogleUser(tokenInfo: GoogleTokenInfo) {
 }
 
 export const authService = {
+  async getAccessContext(userId: string): Promise<AuthAccessContext> {
+    const user = await getAuthUserById(userId);
+
+    const globalRoleRows = await db
+      .select({
+        key: roles.key,
+      })
+      .from(userRoles)
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(eq(userRoles.userId, userId));
+
+    const businessRows = await db
+      .select({
+        businessId: businessTeamMembers.businessId,
+        businessName: businesses.displayName,
+        businessSlug: businesses.slug,
+        branchId: businessTeamMembers.branchId,
+        role: businessTeamMembers.role,
+        status: businessTeamMembers.status,
+      })
+      .from(businessTeamMembers)
+      .innerJoin(businesses, eq(businessTeamMembers.businessId, businesses.id))
+      .where(eq(businessTeamMembers.userId, userId));
+
+    const activeBusinesses: AuthBusinessAccessItem[] = businessRows
+      .filter((row) => row.status === "active" && isBusinessRole(row.role))
+      .map((row) => ({
+        businessId: row.businessId,
+        businessName: row.businessName,
+        businessSlug: row.businessSlug,
+        branchId: row.branchId,
+        role: row.role as BusinessRoleKey,
+        status: row.status,
+      }));
+
+    const rolesList: AuthRoleItem[] = [];
+
+    if (user.status === "active") {
+      rolesList.push({
+        key: "user",
+        source: "virtual",
+      });
+    }
+
+    for (const row of globalRoleRows) {
+      if (row.key === "customer" || isPlatformRole(row.key)) {
+        rolesList.push({
+          key: row.key as AppRoleKey,
+          source: "global",
+        });
+      }
+    }
+
+    for (const business of activeBusinesses) {
+      rolesList.push({
+        key: business.role,
+        source: "business",
+        businessId: business.businessId,
+      });
+    }
+
+    const platformRoles = globalRoleRows
+      .map((row) => row.key)
+      .filter(isPlatformRole)
+      .sort(
+        (a, b) => PLATFORM_ROLE_PRIORITY[b] - PLATFORM_ROLE_PRIORITY[a],
+      );
+
+    const platformRole = platformRoles[0] ?? null;
+
+    const platformPermissions = platformRole
+      ? PLATFORM_ROLE_PERMISSIONS[platformRole]
+      : [];
+
+    const businessPermissions = activeBusinesses.flatMap(
+      (business) => BUSINESS_ROLE_PERMISSIONS[business.role],
+    );
+
+    const permissions = dedupeStrings([
+      ...platformPermissions,
+      ...businessPermissions,
+    ]);
+
+    const isVerified = user.emailVerified && user.phoneVerified;
+    const isBusinessOwner = activeBusinesses.some(
+      (business) => business.role === "business_owner",
+    );
+
+    return {
+      roles: rolesList,
+      platform: {
+        hasAccess: Boolean(platformRole),
+        role: platformRole,
+        permissions: platformPermissions,
+      },
+      businesses: activeBusinesses,
+      activeBusiness: activeBusinesses[0] ?? null,
+      permissions,
+      flags: {
+        isVerified,
+        isOnboardingCompleted: user.onboardingCompleted,
+        isPlatformUser: Boolean(platformRole),
+        isBusinessUser: activeBusinesses.length > 0,
+        isBusinessOwner,
+      },
+    };
+  },
+
   async signup(
     payload: SignUpSchemaType,
     metadata: SessionMetadata = {},
@@ -474,6 +703,7 @@ export const authService = {
     }
 
     await createUserProfileIfMissing(createdUser.id);
+    await assignRoleIfMissing(createdUser.id, "customer");
 
     const emailOtp = generateOtp();
     const phoneOtp = generateOtp();
@@ -504,9 +734,11 @@ export const authService = {
 
     const tokens = await createSession(createdUser.id, metadata);
     const user = await getAuthUserById(createdUser.id);
+    const access = await this.getAccessContext(createdUser.id);
 
     return {
       user,
+      access,
       token: tokens.accessToken,
       ...tokens,
       verificationToken: tokens.accessToken,
@@ -562,14 +794,17 @@ export const authService = {
     }
 
     await createUserProfileIfMissing(user.id);
+    await assignRoleIfMissing(user.id, "customer");
 
     const tokens = await createSession(user.id, metadata);
     const authUser = await getAuthUserById(user.id);
+    const access = await this.getAccessContext(user.id);
 
     return {
       token: tokens.accessToken,
       ...tokens,
       user: authUser,
+      access,
     };
   },
 
@@ -581,14 +816,17 @@ export const authService = {
     const user = await getOrCreateGoogleUser(tokenInfo);
 
     await createUserProfileIfMissing(user.id);
+    await assignRoleIfMissing(user.id, "customer");
 
     const tokens = await createSession(user.id, metadata);
     const authUser = await getAuthUserById(user.id);
+    const access = await this.getAccessContext(user.id);
 
     return {
       token: tokens.accessToken,
       ...tokens,
       user: authUser,
+      access,
     };
   },
 
@@ -639,9 +877,11 @@ export const authService = {
 
   async me(userId: string) {
     await createUserProfileIfMissing(userId);
+    await assignRoleIfMissing(userId, "customer");
 
     return {
       user: await getAuthUserById(userId),
+      access: await this.getAccessContext(userId),
     };
   },
 
@@ -680,11 +920,13 @@ export const authService = {
 
     const tokens = await createSession(session.userId, metadata);
     const user = await getAuthUserById(session.userId);
+    const access = await this.getAccessContext(session.userId);
 
     return {
       token: tokens.accessToken,
       ...tokens,
       user,
+      access,
     };
   },
 
@@ -712,6 +954,7 @@ export const authService = {
       verified: true,
       type: "email",
       user: await getAuthUserById(userId),
+      access: await this.getAccessContext(userId),
     };
   },
 
@@ -726,6 +969,7 @@ export const authService = {
       verified: true,
       type: "phone",
       user: await getAuthUserById(userId),
+      access: await this.getAccessContext(userId),
     };
   },
 

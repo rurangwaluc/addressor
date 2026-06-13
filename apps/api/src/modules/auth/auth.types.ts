@@ -22,6 +22,24 @@ export type {
   VerifyPhoneSchemaType,
 };
 
+export type PlatformRoleKey =
+  | "platform_owner"
+  | "platform_admin"
+  | "platform_support";
+
+export type BusinessRoleKey =
+  | "business_owner"
+  | "business_admin"
+  | "business_manager"
+  | "business_editor"
+  | "business_staff";
+
+export type AppRoleKey =
+  | "user"
+  | "customer"
+  | PlatformRoleKey
+  | BusinessRoleKey;
+
 export type AuthUser = {
   id: string;
   email: string | null;
@@ -33,6 +51,47 @@ export type AuthUser = {
   phoneVerified: boolean;
   onboardingCompleted: boolean;
   defaultMode: string;
+};
+
+export type AuthRoleItem = {
+  key: AppRoleKey;
+  source: "virtual" | "global" | "business";
+  businessId?: string;
+};
+
+export type AuthBusinessAccessItem = {
+  businessId: string;
+  businessName: string;
+  businessSlug: string;
+  branchId: string | null;
+  role: BusinessRoleKey;
+  status: string;
+};
+
+export type AuthPlatformAccess = {
+  hasAccess: boolean;
+  role: PlatformRoleKey | null;
+  permissions: string[];
+};
+
+export type AuthAccessContext = {
+  roles: AuthRoleItem[];
+  platform: AuthPlatformAccess;
+  businesses: AuthBusinessAccessItem[];
+  activeBusiness: AuthBusinessAccessItem | null;
+  permissions: string[];
+  flags: {
+    isVerified: boolean;
+    isOnboardingCompleted: boolean;
+    isPlatformUser: boolean;
+    isBusinessUser: boolean;
+    isBusinessOwner: boolean;
+  };
+};
+
+export type AuthMeResponse = {
+  user: AuthUser;
+  access: AuthAccessContext;
 };
 
 export type SessionTokens = {
@@ -58,10 +117,12 @@ export interface SignupResponse {
 export interface LoginResponse extends SessionTokens {
   token: string;
   user: AuthUser;
+  access: AuthAccessContext;
 }
 
 export interface VerificationResponse {
   verified: true;
   type: "email" | "phone";
   user: AuthUser;
+  access: AuthAccessContext;
 }
