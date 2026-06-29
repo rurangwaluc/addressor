@@ -4,22 +4,19 @@ import Link from "next/link";
 import { useState } from "react";
 import AuthShell from "@/components/AuthShell";
 import AsyncButton from "@/components/AsyncButton";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import InputField from "@/components/InputField";
 import { apiRequest } from "@/lib/api";
+import { redirectAfterAuth } from "@/lib/authSession";
+import type { AccessContext } from "@/lib/authRedirect";
 
 type LoginResponse = {
   ok: true;
   data: {
     token: string;
-  };
-};
-
-type PlatformMeResponse = {
-  ok: true;
-  data: {
-    userId: string;
-    role: "platform_owner" | "platform_admin" | "platform_support";
-    permissions: string[];
+    accessToken?: string;
+    refreshToken?: string;
+    access?: AccessContext;
   };
 };
 
@@ -32,35 +29,29 @@ export default function PlatformLoginPage() {
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
 
+    if (loading) return;
+
     setLoading(true);
     setError("");
 
     try {
-      const loginResponse = await apiRequest<LoginResponse>("/auth/login", {
+      const response = await apiRequest<LoginResponse>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
+        skipAuth: true,
       });
 
-      const token = loginResponse.data.token;
+      const result = await redirectAfterAuth({
+        payload: response.data,
+        fallback: "/platform",
+        requirePlatformAccess: true,
+      });
 
-      const platformResponse = await apiRequest<PlatformMeResponse>(
-        "/platform/me",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      localStorage.setItem("addressorAuthToken", token);
-      localStorage.setItem("addressorPlatformRole", platformResponse.data.role);
-
-      window.location.href = "/owner";
+      if (!result.redirected) {
+        setError(result.error);
+      }
     } catch {
-      localStorage.removeItem("addressorAuthToken");
-      localStorage.removeItem("addressorPlatformRole");
-      setError("Platform login failed. Confirm your account is verified and has platform access.");
+      setError("Platform login failed. Use an approved platform account.");
     } finally {
       setLoading(false);
     }
@@ -68,8 +59,25 @@ export default function PlatformLoginPage() {
 
   return (
     <AuthShell
-      title="Platform owner login"
-      subtitle="Secure access for Addressor platform owner, admins, and support team members."
+      title="Platform login"
+      subtitle="Secure access for the Addressor platform team."
+      eyebrow="Platform access"
+      panelTitle="This area controls Addressor operations."
+      panelSubtitle="Only platform owner, admins, and support team members can enter."
+      panelItems={[
+        {
+          title: "Platform only",
+          text: "Customer and business accounts are blocked from this area.",
+        },
+        {
+          title: "Full visibility",
+          text: "Review businesses, platform settings, users, and support operations.",
+        },
+        {
+          title: "Strict redirects",
+          text: "Approved platform users go to the platform control area after login.",
+        },
+      ]}
     >
       <form onSubmit={handleLogin} className="space-y-4">
         {error ? (
@@ -85,12 +93,30 @@ export default function PlatformLoginPage() {
           </div>
         ) : null}
 
+        <GoogleSignInButton
+          intent="login"
+          fallbackRedirectTo="/platform"
+          requirePlatformAccess
+          onError={setError}
+        />
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1" style={{ background: "var(--border)" }} />
+          <span
+            className="text-[0.68rem] font-black uppercase tracking-[0.18em]"
+            style={{ color: "var(--muted)" }}
+          >
+            Or use password
+          </span>
+          <div className="h-px flex-1" style={{ background: "var(--border)" }} />
+        </div>
+
         <InputField
           label="Platform email"
           type="email"
           value={email}
           onChange={setEmail}
-          placeholder="owner@addressor.com"
+          placeholder="platform@addressor.com"
         />
 
         <InputField
@@ -98,15 +124,19 @@ export default function PlatformLoginPage() {
           type="password"
           value={password}
           onChange={setPassword}
-          placeholder="Your secure password"
+          placeholder="Your password"
         />
 
-        <AsyncButton loading={loading}>Enter platform control room</AsyncButton>
+        <AsyncButton loading={loading}>Enter platform</AsyncButton>
 
-        <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
-          Public user?{" "}
-          <Link href="/login" className="font-bold" style={{ color: "var(--accent)" }}>
-            Go to user login
+        <p className="text-center text-xs leading-6" style={{ color: "var(--muted)" }}>
+          Business owner?{" "}
+          <Link
+            href="/business-login"
+            className="font-bold"
+            style={{ color: "var(--accent)" }}
+          >
+            Use business login
           </Link>
         </p>
       </form>
