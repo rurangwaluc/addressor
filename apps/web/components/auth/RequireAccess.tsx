@@ -32,6 +32,10 @@ function getCurrentPath() {
   return `${window.location.pathname}${window.location.search}`;
 }
 
+function buildIntentLoginPath(intent: "business" | "platform", currentPath: string) {
+  return `/login?intent=${intent}&redirectTo=${encodeURIComponent(currentPath)}`;
+}
+
 function LoadingState() {
   return (
     <main
@@ -151,9 +155,9 @@ export default function RequireAccess({
           reason: "Please log in to continue.",
           loginPath:
             mode === "business"
-              ? `/business-login?redirectTo=${encodeURIComponent(currentPath)}`
+              ? buildIntentLoginPath("business", currentPath)
               : mode === "platform"
-                ? `/platform-login?redirectTo=${encodeURIComponent(currentPath)}`
+                ? buildIntentLoginPath("platform", currentPath)
                 : buildLoginPath(currentPath),
         });
         return;
@@ -168,7 +172,7 @@ export default function RequireAccess({
           setState({
             status: "blocked",
             reason: "This account does not have platform access.",
-            loginPath: `/platform-login?redirectTo=${encodeURIComponent(currentPath)}`,
+            loginPath: buildIntentLoginPath("platform", currentPath),
           });
           return;
         }
@@ -182,7 +186,7 @@ export default function RequireAccess({
             status: "blocked",
             reason:
               "This account does not have business access. Use a business owner or approved team account.",
-            loginPath: `/business-login?redirectTo=${encodeURIComponent(currentPath)}`,
+            loginPath: buildIntentLoginPath("business", currentPath),
           });
           return;
         }

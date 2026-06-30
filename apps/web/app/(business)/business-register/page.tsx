@@ -71,7 +71,7 @@ export default function BusinessRegisterPage() {
         <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
           Already manage a business?{" "}
           <Link
-            href="/business-login"
+            href="/login?intent=business"
             className="font-bold"
             style={{ color: "var(--accent)" }}
           >

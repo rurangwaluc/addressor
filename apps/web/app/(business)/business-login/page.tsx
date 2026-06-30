@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import BusinessLoginClient from "./BusinessLoginClient";
+import { redirect } from "next/navigation";
 
 export default function BusinessLoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <BusinessLoginClient />
-    </Suspense>
-  );
+  redirect("/login?intent=business");
 }

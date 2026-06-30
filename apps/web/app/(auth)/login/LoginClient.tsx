@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
 import AsyncButton from "@/components/AsyncButton";
@@ -21,16 +21,120 @@ type LoginResponse = {
   };
 };
 
+type LoginIntent = "customer" | "business" | "platform";
+
 const outcomes = ["Saved places", "Fast return", "Trusted picks"];
+
+function getIntent(value: string | null): LoginIntent {
+  if (value === "business" || value === "platform") {
+    return value;
+  }
+
+  return "customer";
+}
+
+const loginContent = {
+  customer: {
+    eyebrow: "Customer access",
+    title: "Welcome back",
+    subtitle: "Save better places. Return to trusted options faster.",
+    panelTitle: "Your trusted Rwanda list starts here.",
+    panelSubtitle:
+      "Log in when you want saved places, faster returns, and a personal discovery history.",
+    button: "Login to Addressor",
+    fallback: "/welcome",
+    items: [
+      {
+        title: "Browse first",
+        text: "You can explore restaurants, stays, events, and nightlife before signing in.",
+      },
+      {
+        title: "Save when ready",
+        text: "Sign in to keep places, plans, and trusted options connected to your account.",
+      },
+      {
+        title: "One login",
+        text: "Customers, business users, and platform users all use one secure login.",
+      },
+    ],
+  },
+  business: {
+    eyebrow: "Business access",
+    title: "Business login",
+    subtitle: "Access your Addressor business dashboard from one secure login.",
+    panelTitle: "Keep your public presence current.",
+    panelSubtitle:
+      "Approved business owners and team members are redirected to business tools after login.",
+    button: "Enter Addressor",
+    fallback: "/business-dashboard",
+    items: [
+      {
+        title: "Business protected",
+        text: "Only approved business owners and team members can enter business tools.",
+      },
+      {
+        title: "One login",
+        text: "Use the same Addressor login. Access rules decide where you go next.",
+      },
+      {
+        title: "Fast dashboard",
+        text: "Manage visibility, trust signals, and availability with less friction.",
+      },
+    ],
+  },
+  platform: {
+    eyebrow: "Platform access",
+    title: "Platform login",
+    subtitle: "Secure access for the Addressor platform team.",
+    panelTitle: "This area controls Addressor operations.",
+    panelSubtitle:
+      "Only platform owner, admins, and support team members are redirected to platform control.",
+    button: "Enter Addressor",
+    fallback: "/platform",
+    items: [
+      {
+        title: "Platform only",
+        text: "Customer and business accounts are blocked from the platform area.",
+      },
+      {
+        title: "Full visibility",
+        text: "Review businesses, users, quality, categories, and platform operations.",
+      },
+      {
+        title: "Strict redirects",
+        text: "Access rules send every user to the correct place after login.",
+      },
+    ],
+  },
+} satisfies Record<
+  LoginIntent,
+  {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    panelTitle: string;
+    panelSubtitle: string;
+    button: string;
+    fallback: string;
+    items: Array<{ title: string; text: string }>;
+  }
+>;
 
 export default function LoginClient() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
+  const intent = getIntent(searchParams.get("intent"));
+  const content = useMemo(() => loginContent[intent], [intent]);
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(
+    intent === "platform" ? "rurangwa.luke@gmail.com" : "",
+  );
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const requireBusinessAccess = intent === "business";
+  const requirePlatformAccess = intent === "platform";
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
@@ -50,7 +154,9 @@ export default function LoginClient() {
       const result = await redirectAfterAuth({
         payload: response.data,
         redirectTo,
-        fallback: "/welcome",
+        fallback: content.fallback,
+        requireBusinessAccess,
+        requirePlatformAccess,
       });
 
       if (!result.redirected) {
@@ -58,7 +164,9 @@ export default function LoginClient() {
       }
     } catch {
       setMessage(
-        "Login failed. Check your password and make sure your email and phone are verified.",
+        intent === "customer"
+          ? "Login failed. Check your password and make sure your email and phone are verified."
+          : "Login failed. Use an approved account for this area.",
       );
     } finally {
       setLoading(false);
@@ -67,25 +175,12 @@ export default function LoginClient() {
 
   return (
     <AuthShell
-      title="Welcome back"
-      subtitle="Save better places. Return to trusted options faster."
-      eyebrow="Customer access"
-      panelTitle="Your trusted Rwanda list starts here."
-      panelSubtitle="Log in when you want saved places, faster returns, and a personal discovery history."
-      panelItems={[
-        {
-          title: "Browse first",
-          text: "You can explore restaurants, stays, events, and nightlife before signing in.",
-        },
-        {
-          title: "Save when ready",
-          text: "Sign in to keep places, plans, and trusted options connected to your account.",
-        },
-        {
-          title: "Same account",
-          text: "Google and password login both use the same Addressor access rules.",
-        },
-      ]}
+      title={content.title}
+      subtitle={content.subtitle}
+      eyebrow={content.eyebrow}
+      panelTitle={content.panelTitle}
+      panelSubtitle={content.panelSubtitle}
+      panelItems={content.items}
     >
       <form onSubmit={handleLogin} className="space-y-5">
         <div className="grid grid-cols-3 gap-2">
@@ -121,9 +216,11 @@ export default function LoginClient() {
         ) : null}
 
         <GoogleSignInButton
-          intent="login"
+          intent={intent === "business" ? "business" : "login"}
           redirectTo={redirectTo}
-          fallbackRedirectTo="/welcome"
+          fallbackRedirectTo={content.fallback}
+          requireBusinessAccess={requireBusinessAccess}
+          requirePlatformAccess={requirePlatformAccess}
           onError={setMessage}
         />
 
@@ -140,11 +237,23 @@ export default function LoginClient() {
 
         <div className="space-y-4">
           <InputField
-            label="Email address"
+            label={
+              intent === "business"
+                ? "Business email"
+                : intent === "platform"
+                  ? "Platform email"
+                  : "Email address"
+            }
             type="email"
             value={email}
             onChange={setEmail}
-            placeholder="you@example.com"
+            placeholder={
+              intent === "business"
+                ? "owner@business.com"
+                : intent === "platform"
+                  ? "platform@addressor.com"
+                  : "you@example.com"
+            }
           />
 
           <InputField
@@ -156,7 +265,7 @@ export default function LoginClient() {
           />
         </div>
 
-        <AsyncButton loading={loading}>Login to Addressor</AsyncButton>
+        <AsyncButton loading={loading}>{content.button}</AsyncButton>
 
         <div
           className="rounded-[1.35rem] border px-4 py-4 text-center text-sm leading-6"
@@ -173,7 +282,7 @@ export default function LoginClient() {
               className="font-black transition hover:opacity-80"
               style={{ color: "var(--accent)" }}
             >
-              Create account
+              Create customer account
             </Link>
           </p>
 
@@ -182,24 +291,39 @@ export default function LoginClient() {
           <p>
             Business owner?{" "}
             <Link
-              href="/business-login"
+              href="/business-register"
               className="font-black transition hover:opacity-80"
               style={{ color: "var(--accent)" }}
             >
-              Business login
+              Register your business
             </Link>
           </p>
 
-          <p className="mt-2 text-xs">
-            Platform team?{" "}
-            <Link
-              href="/platform-login"
-              className="font-bold opacity-70 transition hover:opacity-100"
-              style={{ color: "var(--muted)" }}
-            >
-              Internal access
-            </Link>
-          </p>
+          {intent !== "business" ? (
+            <p className="mt-2 text-xs">
+              Already approved for business?{" "}
+              <Link
+                href="/login?intent=business"
+                className="font-bold opacity-70 transition hover:opacity-100"
+                style={{ color: "var(--muted)" }}
+              >
+                Use business access
+              </Link>
+            </p>
+          ) : null}
+
+          {intent !== "platform" ? (
+            <p className="mt-2 text-xs">
+              Platform team?{" "}
+              <Link
+                href="/login?intent=platform"
+                className="font-bold opacity-70 transition hover:opacity-100"
+                style={{ color: "var(--muted)" }}
+              >
+                Internal access
+              </Link>
+            </p>
+          ) : null}
         </div>
       </form>
     </AuthShell>
