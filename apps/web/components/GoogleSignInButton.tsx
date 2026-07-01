@@ -105,6 +105,7 @@ export default function GoogleSignInButton({
   requirePlatformAccess = false,
   onError,
 }: GoogleSignInButtonProps) {
+  const router = useRouter();
   const buttonRef = useRef<HTMLDivElement | null>(null);
   const renderedRef = useRef(false);
   const [loading, setLoading] = useState(false);
@@ -162,7 +163,10 @@ export default function GoogleSignInButton({
 
               if (!result.redirected) {
                 onError?.(result.error);
+                return;
               }
+
+              router.replace(result.redirectPath);
             } catch {
               onError?.(
                 "Google sign-in failed. Confirm your Google client ID and API are configured.",
