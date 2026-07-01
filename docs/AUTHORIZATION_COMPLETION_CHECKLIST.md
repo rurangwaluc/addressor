@@ -23,9 +23,9 @@ Addressor must complete authentication and authorization before moving deeply in
 
 ### 1. Auth helper cleanup
 
-- [ ] All pages must use shared auth helpers instead of direct `localStorage` auth checks
-- [ ] `/welcome` must use `RequireAccess mode="auth"` or equivalent shared guard
-- [ ] No page should manually remove only `addressorAuthToken`
+- [x] All current protected pages use shared auth helpers instead of direct `localStorage` auth checks
+- [x] `/welcome` uses `RequireAccess mode="auth"`
+- [x] No current page manually removes only `addressorAuthToken`
 - [ ] No generic global loading screen should appear
 
 ### 2. Refresh token flow
