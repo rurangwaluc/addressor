@@ -10,9 +10,11 @@ import { apiRequest } from "@/lib/api";
 type ForgotPasswordResponse = {
   ok: true;
   data: {
-    reset?: boolean;
-    devResetToken?: string;
-    message?: string;
+    sent: boolean;
+    devReset?: {
+      token: string;
+      expiresAt: string;
+    };
   };
 };
 
@@ -45,8 +47,8 @@ export default function ForgotPasswordPage() {
         "If this email exists, Addressor will send password reset instructions.",
       );
 
-      if (response.data.devResetToken) {
-        setDevResetToken(response.data.devResetToken);
+      if (response.data.devReset?.token) {
+        setDevResetToken(response.data.devReset.token);
       }
     } catch {
       setMessage(
