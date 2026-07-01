@@ -268,62 +268,113 @@ export default function LoginClient() {
         <AsyncButton loading={loading}>{content.button}</AsyncButton>
 
         <div
-          className="rounded-[1.35rem] border px-4 py-4 text-center text-sm leading-6"
+          className="rounded-[1.45rem] border p-3 text-sm leading-6"
           style={{
             background: "var(--surface)",
             borderColor: "var(--border)",
             color: "var(--muted)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
           }}
         >
-          <p>
-            New to Addressor?{" "}
-            <Link
-              href="/signup"
-              className="font-black transition hover:opacity-80"
-              style={{ color: "var(--accent)" }}
-            >
-              Create customer account
-            </Link>
-          </p>
+          <div
+            className="rounded-[1.05rem] border px-4 py-3 text-center"
+            style={{
+              background: "color-mix(in srgb, var(--surface) 92%, var(--background))",
+              borderColor: "var(--border)",
+            }}
+          >
+            <p>
+              New to Addressor?{" "}
+              <Link
+                href="/signup"
+                className="font-black transition hover:opacity-80"
+                style={{ color: "var(--accent)" }}
+              >
+                Create customer account
+              </Link>
+            </p>
+          </div>
 
           <div className="my-3 h-px w-full" style={{ background: "var(--border)" }} />
 
-          <p>
-            Business owner?{" "}
-            <Link
-              href="/business-register"
-              className="font-black transition hover:opacity-80"
-              style={{ color: "var(--accent)" }}
+          <Link
+            href="/business-register"
+            className="group block rounded-[1.2rem] border px-4 py-4 text-left transition hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={{
+              background: "color-mix(in srgb, var(--surface) 94%, var(--background))",
+              borderColor: "color-mix(in srgb, var(--accent) 38%, var(--border))",
+              color: "var(--text)",
+              boxShadow: "0 14px 34px rgba(0,0,0,0.08)",
+            }}
+          >
+            <span
+              className="block text-[0.64rem] font-black uppercase tracking-[0.22em]"
+              style={{ color: "var(--muted)" }}
             >
-              Register your business
-            </Link>
-          </p>
+              For business owners
+            </span>
 
-          {intent !== "business" ? (
-            <p className="mt-2 text-xs">
-              Already approved for business?{" "}
+            <span className="mt-2 flex items-center justify-between gap-4">
+              <span>
+                <span className="block text-base font-black tracking-[-0.02em]">
+                  Register your business
+                </span>
+                <span
+                  className="mt-1 block text-xs font-semibold leading-5"
+                  style={{ color: "var(--muted)" }}
+                >
+                  Submit your business request and prepare your public Addressor presence.
+                </span>
+              </span>
+
+              <span
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border text-sm font-black transition group-hover:translate-x-0.5"
+                style={{
+                  background: "var(--surface)",
+                  borderColor: "var(--border)",
+                  color: "var(--accent)",
+                }}
+              >
+                →
+              </span>
+            </span>
+          </Link>
+
+          <div className="mt-3 grid gap-2 min-[390px]:grid-cols-2">
+            {intent !== "business" ? (
               <Link
                 href="/login?intent=business"
-                className="font-bold opacity-70 transition hover:opacity-100"
-                style={{ color: "var(--muted)" }}
+                className="rounded-[1rem] border px-3 py-3 text-center text-[0.72rem] font-black leading-5 transition hover:-translate-y-0.5"
+                style={{
+                  background: "color-mix(in srgb, var(--surface) 94%, var(--background))",
+                  borderColor: "var(--border)",
+                  color: "var(--text)",
+                }}
               >
-                Use business access
+                Already approved?
+                <span className="mt-0.5 block font-bold" style={{ color: "var(--accent)" }}>
+                  Business access
+                </span>
               </Link>
-            </p>
-          ) : null}
+            ) : null}
 
-          {intent !== "platform" ? (
-            <p className="mt-2 text-xs">
-              Platform team?{" "}
+            {intent !== "platform" ? (
               <Link
                 href="/login?intent=platform"
-                className="font-bold opacity-70 transition hover:opacity-100"
-                style={{ color: "var(--muted)" }}
+                className="rounded-[1rem] border px-3 py-3 text-center text-[0.72rem] font-black leading-5 transition hover:-translate-y-0.5"
+                style={{
+                  background: "color-mix(in srgb, var(--surface) 94%, var(--background))",
+                  borderColor: "var(--border)",
+                  color: "var(--text)",
+                }}
               >
-                Internal access
+                Platform team?
+                <span className="mt-0.5 block font-bold" style={{ color: "var(--muted)" }}>
+                  Internal access
+                </span>
               </Link>
-            </p>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </form>
     </AuthShell>

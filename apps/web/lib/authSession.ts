@@ -22,6 +22,7 @@ type MeResponse = {
 
 const ACCESS_TOKEN_KEY = "addressorAuthToken";
 const REFRESH_TOKEN_KEY = "addressorRefreshToken";
+const ACCESS_CONTEXT_KEY = "addressorAccessContext";
 
 export function getStoredAccessToken() {
   if (typeof window === "undefined") {
@@ -29,6 +30,29 @@ export function getStoredAccessToken() {
   }
 
   return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function getStoredAccessContext() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const rawAccess = localStorage.getItem(ACCESS_CONTEXT_KEY);
+
+  if (!rawAccess) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawAccess) as AccessContext;
+  } catch {
+    localStorage.removeItem(ACCESS_CONTEXT_KEY);
+    return null;
+  }
+}
+
+export function saveAccessContext(access: AccessContext) {
+  localStorage.setItem(ACCESS_CONTEXT_KEY, JSON.stringify(access));
 }
 
 export function saveAuthTokens(payload: TokenLoginPayload) {
@@ -40,12 +64,17 @@ export function saveAuthTokens(payload: TokenLoginPayload) {
     localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken);
   }
 
+  if (payload.access) {
+    saveAccessContext(payload.access);
+  }
+
   return accessToken;
 }
 
 export function clearAuthTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(ACCESS_CONTEXT_KEY);
 }
 
 export async function getCurrentAccessContext(authToken?: string) {
@@ -53,6 +82,8 @@ export async function getCurrentAccessContext(authToken?: string) {
     method: "GET",
     authToken,
   });
+
+  saveAccessContext(response.data.access);
 
   return response.data.access;
 }
@@ -68,6 +99,8 @@ export async function redirectAfterAuth(params: {
 
   const access =
     params.payload.access ?? (await getCurrentAccessContext(accessToken));
+
+  saveAccessContext(access);
 
   if (params.requirePlatformAccess && !hasPlatformAccess(access)) {
     clearAuthTokens();

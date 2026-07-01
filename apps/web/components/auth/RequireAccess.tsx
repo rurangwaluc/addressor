@@ -11,6 +11,7 @@ import {
 import {
   clearAuthTokens,
   getCurrentAccessContext,
+  getStoredAccessContext,
   getStoredAccessToken,
 } from "@/lib/authSession";
 
@@ -36,37 +37,41 @@ function buildIntentLoginPath(intent: "business" | "platform", currentPath: stri
   return `/login?intent=${intent}&redirectTo=${encodeURIComponent(currentPath)}`;
 }
 
-function LoadingState() {
-  return (
-    <main
-      className="min-h-screen px-5 py-10"
-      style={{
-        background: "var(--background)",
-        color: "var(--text)",
-      }}
-    >
-      <section className="mx-auto flex min-h-[70vh] w-full max-w-4xl items-center justify-center">
-        <div
-          className="w-full max-w-md rounded-[2rem] border p-6 text-center shadow-2xl"
-          style={{
-            background: "var(--surface)",
-            borderColor: "var(--border)",
-          }}
-        >
-          <div
-            className="mx-auto mb-5 h-12 w-12 animate-pulse rounded-full"
-            style={{ background: "var(--accent-soft)" }}
-          />
-          <p className="text-sm font-black uppercase tracking-[0.2em]">
-            Checking access
-          </p>
-          <p className="mt-3 text-sm leading-6" style={{ color: "var(--muted)" }}>
-            We are confirming your Addressor session before opening this area.
-          </p>
-        </div>
-      </section>
-    </main>
-  );
+function canUseAccessForMode(access: AccessContext, mode: RequireAccessProps["mode"]) {
+  if (mode === "platform") {
+    return hasPlatformAccess(access);
+  }
+
+  if (mode === "business") {
+    return hasPlatformAccess(access) || hasBusinessAccess(access);
+  }
+
+  return true;
+}
+
+function getBlockedState(mode: RequireAccessProps["mode"], currentPath: string): AccessState {
+  if (mode === "platform") {
+    return {
+      status: "blocked",
+      reason: "This account does not have platform access.",
+      loginPath: buildIntentLoginPath("platform", currentPath),
+    };
+  }
+
+  if (mode === "business") {
+    return {
+      status: "blocked",
+      reason:
+        "This account does not have business access. Use a business owner or approved team account.",
+      loginPath: buildIntentLoginPath("business", currentPath),
+    };
+  }
+
+  return {
+    status: "blocked",
+    reason: "Please log in to continue.",
+    loginPath: buildLoginPath(currentPath),
+  };
 }
 
 function BlockedState({
@@ -163,31 +168,19 @@ export default function RequireAccess({
         return;
       }
 
+      const cachedAccess = getStoredAccessContext();
+
+      if (cachedAccess && canUseAccessForMode(cachedAccess, mode)) {
+        setState({ status: "allowed", access: cachedAccess });
+      }
+
       try {
         const access = await getCurrentAccessContext(token);
 
         if (cancelled) return;
 
-        if (mode === "platform" && !hasPlatformAccess(access)) {
-          setState({
-            status: "blocked",
-            reason: "This account does not have platform access.",
-            loginPath: buildIntentLoginPath("platform", currentPath),
-          });
-          return;
-        }
-
-        if (
-          mode === "business" &&
-          !hasPlatformAccess(access) &&
-          !hasBusinessAccess(access)
-        ) {
-          setState({
-            status: "blocked",
-            reason:
-              "This account does not have business access. Use a business owner or approved team account.",
-            loginPath: buildIntentLoginPath("business", currentPath),
-          });
+        if (!canUseAccessForMode(access, mode)) {
+          setState(getBlockedState(mode, currentPath));
           return;
         }
 
@@ -213,7 +206,7 @@ export default function RequireAccess({
   }, [mode]);
 
   if (state.status === "checking") {
-    return <LoadingState />;
+    return null;
   }
 
   if (state.status === "blocked") {
