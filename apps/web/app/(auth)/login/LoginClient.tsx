@@ -165,8 +165,8 @@ export default function LoginClient() {
     } catch {
       setMessage(
         intent === "customer"
-          ? "Login failed. Check your password and make sure your email and phone are verified."
-          : "Login failed. Use an approved account for this area.",
+          ? "Login failed. Check your details and try again."
+          : "Login failed. Check your details and access level.",
       );
     } finally {
       setLoading(false);

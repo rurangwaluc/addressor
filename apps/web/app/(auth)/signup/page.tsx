@@ -69,7 +69,7 @@ export default function SignupPage() {
 
       window.location.href = "/verify";
     } catch {
-      setError("Signup failed. Check your details and try again.");
+      setError("Signup could not be completed. Check your details and try again.");
     } finally {
       setLoading(false);
     }

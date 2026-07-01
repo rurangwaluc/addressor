@@ -58,7 +58,7 @@ Addressor must complete authentication and authorization before moving deeply in
 - [x] Signup endpoint rate limited
 - [x] OTP request endpoint rate limited
 - [x] Password reset request endpoint rate limited
-- [ ] Clear error messages without leaking account existence
+- [x] Public auth error messages avoid leaking account existence
 
 ### 6. Audit logs
 
