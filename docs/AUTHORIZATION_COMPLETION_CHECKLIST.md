@@ -54,10 +54,10 @@ Addressor must complete authentication and authorization before moving deeply in
 
 ### 5. Rate limiting and brute-force protection
 
-- [ ] Login endpoint rate limited
-- [ ] Signup endpoint rate limited
-- [ ] OTP request endpoint rate limited
-- [ ] Password reset request endpoint rate limited
+- [x] Login endpoint rate limited
+- [x] Signup endpoint rate limited
+- [x] OTP request endpoint rate limited
+- [x] Password reset request endpoint rate limited
 - [ ] Clear error messages without leaking account existence
 
 ### 6. Audit logs

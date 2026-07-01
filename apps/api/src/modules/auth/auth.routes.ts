@@ -13,14 +13,44 @@ import {
   verifyPhoneHandler,
 } from "./auth.controller.js";
 import { requireAuth } from "../../app/middleware/requireAuth.js";
+import { authRateLimits } from "../../app/middleware/rateLimit.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
-  fastify.post("/signup", signupHandler);
-  fastify.post("/login", loginHandler);
-  fastify.post("/google", googleLoginHandler);
-  fastify.post("/refresh", refreshSessionHandler);
-  fastify.post("/forgot-password", forgotPasswordHandler);
-  fastify.post("/reset-password", resetPasswordHandler);
+  fastify.post(
+    "/signup",
+    { preHandler: authRateLimits.signup },
+    signupHandler,
+  );
+
+  fastify.post(
+    "/login",
+    { preHandler: authRateLimits.login },
+    loginHandler,
+  );
+
+  fastify.post(
+    "/google",
+    { preHandler: authRateLimits.google },
+    googleLoginHandler,
+  );
+
+  fastify.post(
+    "/refresh",
+    { preHandler: authRateLimits.refresh },
+    refreshSessionHandler,
+  );
+
+  fastify.post(
+    "/forgot-password",
+    { preHandler: authRateLimits.forgotPassword },
+    forgotPasswordHandler,
+  );
+
+  fastify.post(
+    "/reset-password",
+    { preHandler: authRateLimits.resetPassword },
+    resetPasswordHandler,
+  );
 
   fastify.get("/me", { preHandler: requireAuth }, meHandler);
   fastify.post("/logout", { preHandler: requireAuth }, logoutHandler);
@@ -39,7 +69,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     "/resend-verification",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, authRateLimits.resendVerification] },
     resendVerificationHandler,
   );
 }
