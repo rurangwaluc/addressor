@@ -48,8 +48,8 @@ Addressor must complete authentication and authorization before moving deeply in
 
 - [ ] Email verification status should be clearly represented in `/auth/me`
 - [ ] Phone verification status should be clearly represented in `/auth/me`
-- [ ] Verification page should handle expired/invalid OTPs
-- [ ] Resend OTP flow should be available
+- [x] Verification page handles expired/invalid OTPs
+- [x] Resend OTP flow is available
 - [ ] Auth redirects should respect required verification where needed
 
 ### 5. Rate limiting and brute-force protection
