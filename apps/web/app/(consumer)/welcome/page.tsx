@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AuthBadge from "@/components/AuthBadge";
 import ThemeToggle from "@/components/ThemeToggle";
+import LogoutButton from "@/components/auth/LogoutButton";
 
 export default function WelcomePage() {
   const [ready, setReady] = useState(false);
@@ -100,21 +101,9 @@ export default function WelcomePage() {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                localStorage.removeItem("addressorAuthToken");
-                window.location.href = "/login";
-              }}
-              className="mt-8 rounded-2xl border px-5 py-3 text-sm font-bold"
-              style={{
-                borderColor: "var(--border)",
-                color: "var(--text)",
-                background: "var(--surface-strong)",
-              }}
-            >
-              Logout
-            </button>
+            <div className="mt-8">
+              <LogoutButton />
+            </div>
           </div>
         </section>
       </div>
