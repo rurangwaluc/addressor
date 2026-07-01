@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
       );
 
       setMessage(
-        "If this email exists, Addressor will send password reset instructions.",
+        "Check your email for reset instructions. For your security, we show this message even if the email is not registered.",
       );
 
       if (response.data.devReset?.token) {
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
       }
     } catch {
       setMessage(
-        "If this email exists, Addressor will send password reset instructions.",
+        "Check your email for reset instructions. For your security, we show this message even if the email is not registered.",
       );
     } finally {
       setLoading(false);
@@ -115,14 +115,14 @@ export default function ForgotPasswordPage() {
             }}
           >
             <p className="font-black" style={{ color: "var(--text)" }}>
-              Development reset link
+              Development only
             </p>
             <Link
               href={`/reset-password?token=${encodeURIComponent(devResetToken)}`}
               className="mt-2 block break-all font-black transition hover:opacity-80"
               style={{ color: "var(--accent)" }}
             >
-              Continue to reset password
+              Use reset link
             </Link>
           </div>
         ) : null}
