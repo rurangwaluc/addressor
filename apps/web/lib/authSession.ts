@@ -32,6 +32,14 @@ export function getStoredAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+export function getStoredRefreshToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
 export function getStoredAccessContext() {
   if (typeof window === "undefined") {
     return null;
@@ -137,7 +145,21 @@ export async function redirectAfterAuth(params: {
   };
 }
 
-export function logout() {
-  clearAuthTokens();
-  window.location.href = "/login";
+export async function logout() {
+  try {
+    const token = getStoredAccessToken();
+
+    if (token) {
+      await apiRequest("/auth/logout", {
+        method: "POST",
+        authToken: token,
+        skipRefresh: true,
+      });
+    }
+  } catch {
+    // Logout must always clear local auth state, even if the server session is already expired.
+  } finally {
+    clearAuthTokens();
+    window.location.href = "/login";
+  }
 }

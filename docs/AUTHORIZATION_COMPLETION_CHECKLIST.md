@@ -30,10 +30,10 @@ Addressor must complete authentication and authorization before moving deeply in
 
 ### 2. Refresh token flow
 
-- [ ] API must expose refresh session endpoint
-- [ ] Frontend must call refresh endpoint when access token expires
-- [ ] Expired refresh token must log user out cleanly
-- [ ] Cached access context must be cleared when refresh fails
+- [x] API exposes refresh session endpoint
+- [x] Frontend calls refresh endpoint when access token expires
+- [x] Expired refresh token clears auth state cleanly
+- [x] Cached access context is cleared when refresh fails
 
 ### 3. Password reset
 
