@@ -256,13 +256,25 @@ export default function LoginClient() {
             }
           />
 
-          <InputField
-            label="Password"
+          <div>
+            <InputField
+              label="Password"
             type="password"
             value={password}
             onChange={setPassword}
             placeholder="Enter your password"
-          />
+            />
+
+            <div className="mt-2 text-right">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-black transition hover:opacity-80"
+                style={{ color: "var(--accent)" }}
+              >
+                Forgot password?
+              </Link>
+            </div>
+          </div>
         </div>
 
         <AsyncButton loading={loading}>{content.button}</AsyncButton>

@@ -37,12 +37,12 @@ Addressor must complete authentication and authorization before moving deeply in
 
 ### 3. Password reset
 
-- [ ] API request password reset endpoint
-- [ ] API reset password endpoint
-- [ ] Web forgot password page
-- [ ] Web reset password page
-- [ ] Password reset token expiry handling
-- [ ] User-friendly success/error states
+- [x] API request password reset endpoint
+- [x] API reset password endpoint
+- [x] Web forgot password page
+- [x] Web reset password page
+- [x] Password reset token expiry handling through backend reset token validation
+- [x] User-friendly success/error states
 
 ### 4. Verification flow polish
 
