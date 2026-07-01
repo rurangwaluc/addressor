@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
 import AsyncButton from "@/components/AsyncButton";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 import InputField from "@/components/InputField";
-import { redirectAfterAuth } from "@/lib/authSession";
+import { getPostAuthRedirectResult } from "@/lib/authSession";
 import type { AccessContext } from "@/lib/authRedirect";
 import { apiRequest } from "@/lib/api";
 
@@ -121,6 +121,7 @@ const loginContent = {
 >;
 
 export default function LoginClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
   const intent = getIntent(searchParams.get("intent"));
@@ -151,7 +152,7 @@ export default function LoginClient() {
         skipAuth: true,
       });
 
-      const result = await redirectAfterAuth({
+      const result = await getPostAuthRedirectResult({
         payload: response.data,
         redirectTo,
         fallback: content.fallback,
@@ -161,7 +162,10 @@ export default function LoginClient() {
 
       if (!result.redirected) {
         setMessage(result.error);
+        return;
       }
+
+      router.replace(result.redirectPath);
     } catch {
       setMessage(
         intent === "customer"

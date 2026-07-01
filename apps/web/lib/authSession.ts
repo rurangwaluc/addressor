@@ -96,7 +96,7 @@ export async function getCurrentAccessContext(authToken?: string) {
   return response.data.access;
 }
 
-export async function redirectAfterAuth(params: {
+export async function getPostAuthRedirectResult(params: {
   payload: TokenLoginPayload;
   redirectTo?: string | null;
   fallback?: string;
@@ -115,6 +115,7 @@ export async function redirectAfterAuth(params: {
 
     return {
       redirected: false,
+      redirectPath: "",
       error: "This account does not have platform access.",
     };
   }
@@ -128,24 +129,24 @@ export async function redirectAfterAuth(params: {
 
     return {
       redirected: false,
+      redirectPath: "",
       error:
         "This account does not have business access. Use customer login to explore Addressor.",
     };
   }
 
-  window.location.href = getPostAuthRedirectPath({
-    access,
-    redirectTo: params.redirectTo,
-    fallback: params.fallback,
-  });
-
   return {
     redirected: true,
+    redirectPath: getPostAuthRedirectPath({
+      access,
+      redirectTo: params.redirectTo,
+      fallback: params.fallback,
+    }),
     error: "",
   };
 }
 
-export async function logout() {
+export async function revokeCurrentSession() {
   try {
     const token = getStoredAccessToken();
 
@@ -160,6 +161,17 @@ export async function logout() {
     // Logout must always clear local auth state, even if the server session is already expired.
   } finally {
     clearAuthTokens();
-    window.location.href = "/login";
+  }
+}
+
+/**
+ * Kept for non-Next callers. Prefer revokeCurrentSession() + router.replace("/login")
+ * inside Next client components.
+ */
+export async function logout() {
+  await revokeCurrentSession();
+
+  if (typeof window !== "undefined") {
+    window.location.replace("/login");
   }
 }

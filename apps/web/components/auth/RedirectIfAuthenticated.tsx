@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getPostAuthRedirectPath } from "@/lib/authRedirect";
 import {
@@ -18,6 +19,7 @@ export default function RedirectIfAuthenticated({
   children,
   fallback = "/welcome",
 }: RedirectIfAuthenticatedProps) {
+  const router = useRouter();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -37,10 +39,12 @@ export default function RedirectIfAuthenticated({
       const cachedAccess = getStoredAccessContext();
 
       if (cachedAccess) {
-        window.location.href = getPostAuthRedirectPath({
-          access: cachedAccess,
-          fallback,
-        });
+        router.replace(
+          getPostAuthRedirectPath({
+            access: cachedAccess,
+            fallback,
+          }),
+        );
         return;
       }
 
@@ -49,10 +53,12 @@ export default function RedirectIfAuthenticated({
 
         if (cancelled) return;
 
-        window.location.href = getPostAuthRedirectPath({
-          access,
-          fallback,
-        });
+        router.replace(
+          getPostAuthRedirectPath({
+            access,
+            fallback,
+          }),
+        );
       } catch {
         clearAuthTokens();
 
@@ -67,7 +73,7 @@ export default function RedirectIfAuthenticated({
     return () => {
       cancelled = true;
     };
-  }, [fallback]);
+  }, [fallback, router]);
 
   if (checking) {
     return null;

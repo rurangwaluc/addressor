@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { redirectAfterAuth } from "@/lib/authSession";
+import { useRouter } from "next/navigation";
+import { getPostAuthRedirectResult } from "@/lib/authSession";
 import type { AccessContext } from "@/lib/authRedirect";
 import { apiRequest } from "@/lib/api";
 
@@ -151,7 +152,7 @@ export default function GoogleSignInButton({
                 },
               );
 
-              const result = await redirectAfterAuth({
+              const result = await getPostAuthRedirectResult({
                 payload: response.data,
                 redirectTo,
                 fallback: fallbackRedirectTo,

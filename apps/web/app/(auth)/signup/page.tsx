@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AuthShell from "@/components/AuthShell";
 import AsyncButton from "@/components/AsyncButton";
@@ -28,6 +29,8 @@ type SignupResponse = {
 const steps = ["Create profile", "Verify access", "Start using"];
 
 export default function SignupPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -67,7 +70,7 @@ export default function SignupPage() {
         );
       }
 
-      window.location.href = "/verify";
+      router.replace("/verify");
     } catch {
       setError("Signup could not be completed. Check your details and try again.");
     } finally {
