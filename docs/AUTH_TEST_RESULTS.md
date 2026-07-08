@@ -4,7 +4,7 @@ Date: 2026-07-01
 
 ## Manual browser tests
 
-- [ ] Customer login redirects to `/welcome`
+- [x] Customer login redirects to `/welcome`
 - [ ] Customer logout clears session and returns to `/login`
 - [ ] Business login redirects to `/business-dashboard`
 - [ ] Business logout clears session and returns to `/login`
@@ -45,3 +45,8 @@ Date: 2026-07-01
 ## Notes
 
 Write any issue found here before continuing auth work.
+
+
+## Google login tests
+
+- [x] Google login redirects to `/welcome`
