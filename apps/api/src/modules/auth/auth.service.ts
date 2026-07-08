@@ -856,7 +856,7 @@ export const authService = {
 
     const user = await getAuthUserById(session.userId);
 
-    if (user.status !== "active" && !user.emailVerified) {
+    if (user.status !== "active" && user.status !== "pending") {
       throw new Error("Account is not active");
     }
 

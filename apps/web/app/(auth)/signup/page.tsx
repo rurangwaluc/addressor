@@ -7,14 +7,17 @@ import AuthShell from "@/components/AuthShell";
 import AsyncButton from "@/components/AsyncButton";
 import InputField from "@/components/InputField";
 import { apiRequest } from "@/lib/api";
+import { saveAuthTokens } from "@/lib/authSession";
+import type { AccessContext } from "@/lib/authRedirect";
 
 type SignupResponse = {
   ok: true;
   data: {
-    userId: string;
-    email: string;
-    phone: string;
+    token: string;
+    accessToken?: string;
+    refreshToken?: string;
     verificationToken: string;
+    access?: AccessContext;
     verificationRequired: {
       email: boolean;
       phone: boolean;
@@ -53,6 +56,8 @@ export default function SignupPage() {
         method: "POST",
         body: JSON.stringify(form),
       });
+
+      saveAuthTokens(response.data);
 
       localStorage.setItem(
         "addressorVerificationToken",

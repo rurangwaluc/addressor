@@ -94,11 +94,19 @@ export default function VerifyPage() {
           : "Phone verified successfully.",
         "success",
       );
-    } catch {
-      showMessage(
-        "This code is invalid or expired. Check the code or request a new one.",
-        "danger",
-      );
+    } catch (error) {
+      const message =
+        error &&
+        typeof error === "object" &&
+        "error" in error &&
+        error.error &&
+        typeof error.error === "object" &&
+        "message" in error.error &&
+        typeof error.error.message === "string"
+          ? error.error.message
+          : "This code is invalid or expired. Check the code or request a new one.";
+
+      showMessage(message, "danger");
     } finally {
       setLoadingType(null);
     }
@@ -150,8 +158,19 @@ export default function VerifyPage() {
           : "A new phone verification code was sent.",
         "success",
       );
-    } catch {
-      showMessage("Could not send a new code. Try again in a moment.", "danger");
+    } catch (error) {
+      const message =
+        error &&
+        typeof error === "object" &&
+        "error" in error &&
+        error.error &&
+        typeof error.error === "object" &&
+        "message" in error.error &&
+        typeof error.error.message === "string"
+          ? error.error.message
+          : "Could not send a new code. Try again in a moment.";
+
+      showMessage(message, "danger");
     } finally {
       setResendingType(null);
     }
