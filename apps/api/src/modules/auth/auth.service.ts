@@ -17,6 +17,7 @@ import { users, userProfiles } from "../../db/schema/users.schema.js";
 import { sendEmailOtp } from "../../lib/email/resend.js";
 import { sendSmsOtp } from "../../lib/sms/twilio.js";
 import { normalizeRwandaPhone } from "../../lib/utils/phone.js";
+import { auditService } from "../audit/audit.service.js";
 import type {
   AppRoleKey,
   AuthAccessContext,
@@ -385,6 +386,30 @@ async function verifyOtp(params: {
   }
 
   await activateUserIfFullyVerified(params.userId);
+}
+
+
+function getAuditSessionMetadata(metadata: SessionMetadata = {}) {
+  return {
+    ipAddress: metadata.ipAddress ?? null,
+    userAgent: metadata.userAgent ?? null,
+  };
+}
+
+async function logAuthAudit(input: {
+  actorUserId?: string | null;
+  entityType?: string;
+  entityId?: string | null;
+  action: string;
+  metadata?: Record<string, unknown> | null;
+}) {
+  await auditService.create({
+    actorUserId: input.actorUserId ?? null,
+    entityType: input.entityType ?? "auth",
+    entityId: input.entityId ?? null,
+    action: input.action,
+    metadata: input.metadata ?? null,
+  });
 }
 
 async function createSession(
@@ -764,6 +789,15 @@ export const authService = {
     const user = found[0];
 
     if (!user || !user.passwordHash) {
+      await logAuthAudit({
+        action: "auth.login_failure",
+        metadata: {
+          email: payload.email,
+          reason: "invalid_credentials",
+          ...getAuditSessionMetadata(metadata),
+        },
+      });
+
       throw new Error("Invalid credentials");
     }
 
@@ -773,14 +807,50 @@ export const authService = {
     );
 
     if (!passwordMatches) {
+      await logAuthAudit({
+        actorUserId: user.id,
+        entityType: "user",
+        entityId: user.id,
+        action: "auth.login_failure",
+        metadata: {
+          email: user.email,
+          reason: "invalid_credentials",
+          ...getAuditSessionMetadata(metadata),
+        },
+      });
+
       throw new Error("Invalid credentials");
     }
 
     if (!user.emailVerified) {
+      await logAuthAudit({
+        actorUserId: user.id,
+        entityType: "user",
+        entityId: user.id,
+        action: "auth.login_failure",
+        metadata: {
+          email: user.email,
+          reason: "email_not_verified",
+          ...getAuditSessionMetadata(metadata),
+        },
+      });
+
       throw new Error("Email not verified");
     }
 
     if (!user.phoneVerified) {
+      await logAuthAudit({
+        actorUserId: user.id,
+        entityType: "user",
+        entityId: user.id,
+        action: "auth.login_failure",
+        metadata: {
+          email: user.email,
+          reason: "phone_not_verified",
+          ...getAuditSessionMetadata(metadata),
+        },
+      });
+
       throw new Error("Phone not verified");
     }
 
@@ -794,6 +864,18 @@ export const authService = {
     const tokens = await createSession(user.id, metadata);
     const authUser = await getAuthUserById(user.id);
     const access = await this.getAccessContext(user.id);
+
+    await logAuthAudit({
+      actorUserId: user.id,
+      entityType: "user",
+      entityId: user.id,
+      action: "auth.login_success",
+      metadata: {
+        email: user.email,
+        method: "password",
+        ...getAuditSessionMetadata(metadata),
+      },
+    });
 
     return {
       token: tokens.accessToken,
@@ -816,6 +898,18 @@ export const authService = {
     const tokens = await createSession(user.id, metadata);
     const authUser = await getAuthUserById(user.id);
     const access = await this.getAccessContext(user.id);
+
+    await logAuthAudit({
+      actorUserId: user.id,
+      entityType: "user",
+      entityId: user.id,
+      action: "auth.google_login_success",
+      metadata: {
+        email: authUser.email,
+        method: "google",
+        ...getAuditSessionMetadata(metadata),
+      },
+    });
 
     return {
       token: tokens.accessToken,
@@ -926,12 +1020,31 @@ export const authService = {
   },
 
   async logout(sessionId: string) {
+    const sessions = await db
+      .select()
+      .from(authSessions)
+      .where(eq(authSessions.id, sessionId))
+      .limit(1);
+
+    const session = sessions[0];
+    const now = new Date();
+
     await db
       .update(authSessions)
       .set({
-        revokedAt: new Date(),
+        revokedAt: now,
       })
       .where(eq(authSessions.id, sessionId));
+
+    await logAuthAudit({
+      actorUserId: session?.userId ?? null,
+      entityType: "auth_session",
+      entityId: sessionId,
+      action: "auth.logout",
+      metadata: {
+        sessionId,
+      },
+    });
 
     return {
       loggedOut: true,
@@ -1051,7 +1164,10 @@ export const authService = {
     };
   },
 
-  async forgotPassword(payload: ForgotPasswordSchemaType) {
+  async forgotPassword(
+    payload: ForgotPasswordSchemaType,
+    metadata: SessionMetadata = {},
+  ) {
     const found = await db
       .select()
       .from(users)
@@ -1061,6 +1177,15 @@ export const authService = {
     const user = found[0];
 
     if (!user) {
+      await logAuthAudit({
+        action: "auth.password_reset_requested",
+        metadata: {
+          email: payload.email,
+          accountFound: false,
+          ...getAuditSessionMetadata(metadata),
+        },
+      });
+
       return {
         sent: true,
       };
@@ -1073,6 +1198,19 @@ export const authService = {
       userId: user.id,
       tokenHash: hashValue(token),
       expiresAt,
+    });
+
+    await logAuthAudit({
+      actorUserId: user.id,
+      entityType: "user",
+      entityId: user.id,
+      action: "auth.password_reset_requested",
+      metadata: {
+        email: user.email,
+        accountFound: true,
+        expiresAt: expiresAt.toISOString(),
+        ...getAuditSessionMetadata(metadata),
+      },
     });
 
     if (process.env.NODE_ENV === "production") {
@@ -1096,7 +1234,10 @@ export const authService = {
     };
   },
 
-  async resetPassword(payload: ResetPasswordSchemaType) {
+  async resetPassword(
+    payload: ResetPasswordSchemaType,
+    metadata: SessionMetadata = {},
+  ) {
     const now = new Date();
     const tokenHash = hashValue(payload.token);
 
@@ -1141,6 +1282,17 @@ export const authService = {
         revokedAt: now,
       })
       .where(eq(authSessions.userId, resetToken.userId));
+
+    await logAuthAudit({
+      actorUserId: resetToken.userId,
+      entityType: "user",
+      entityId: resetToken.userId,
+      action: "auth.password_reset_completed",
+      metadata: {
+        resetTokenId: resetToken.id,
+        ...getAuditSessionMetadata(metadata),
+      },
+    });
 
     return {
       reset: true,
