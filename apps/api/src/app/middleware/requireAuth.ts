@@ -13,34 +13,40 @@ declare module "fastify" {
   }
 }
 
+function sendUnauthorized(reply: FastifyReply, message: string) {
+  return reply.status(401).send({
+    ok: false,
+    error: {
+      code: "UNAUTHORIZED",
+      message,
+      statusCode: 401,
+    },
+  });
+}
+
 export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return reply.status(401).send({
-      ok: false,
-      error: { code: "UNAUTHORIZED", message: "Missing Authorization" },
-    });
+    return sendUnauthorized(reply, "Missing Authorization");
   }
 
   if (!authHeader.startsWith("Bearer ")) {
-    return reply.status(401).send({
-      ok: false,
-      error: { code: "UNAUTHORIZED", message: "Invalid Authorization format" },
-    });
+    return sendUnauthorized(reply, "Invalid Authorization format");
   }
 
   const token = authHeader.slice("Bearer ".length).trim();
 
   if (!token) {
-    return reply.status(401).send({
-      ok: false,
-      error: { code: "UNAUTHORIZED", message: "Missing token" },
-    });
+    return sendUnauthorized(reply, "Missing token");
   }
 
-  const authenticated = await authService.authenticateAccessToken(token);
+  try {
+    const authenticated = await authService.authenticateAccessToken(token);
 
-  req.user = authenticated.user;
-  req.authSession = authenticated.session;
+    req.user = authenticated.user;
+    req.authSession = authenticated.session;
+  } catch {
+    return sendUnauthorized(reply, "Invalid or expired session");
+  }
 }
