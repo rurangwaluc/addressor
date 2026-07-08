@@ -35,12 +35,12 @@ Date: 2026-07-01
 
 ## Verification tests
 
-- [ ] Signup redirects to `/verify`
-- [ ] Email OTP verification works
-- [ ] Phone OTP verification works
+- [x] Signup redirects to `/verify`
+- [x] Email OTP verification works
+- [x] Phone OTP verification works
 - [ ] Resend email OTP works
 - [ ] Resend phone OTP works
-- [ ] Verified user can login
+- [x] Verified user can login
 
 ## Notes
 
