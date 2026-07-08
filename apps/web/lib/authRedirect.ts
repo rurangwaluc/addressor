@@ -15,6 +15,7 @@ export type AccessContext = {
     businessId: string;
     businessName: string;
     businessSlug: string;
+    onboardingStatus?: string;
     branchId: string | null;
     role: "business_owner" | "business_manager" | "business_staff";
     status: string;
@@ -23,6 +24,7 @@ export type AccessContext = {
     businessId: string;
     businessName: string;
     businessSlug: string;
+    onboardingStatus?: string;
     branchId: string | null;
     role: "business_owner" | "business_manager" | "business_staff";
     status: string;
