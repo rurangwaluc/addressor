@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import RequireAccess from "@/components/auth/RequireAccess";
 import LogoutButton from "@/components/auth/LogoutButton";
@@ -9,7 +9,15 @@ import ThemeToggle from "@/components/ThemeToggle";
 import AsyncButton from "@/components/AsyncButton";
 import InputField from "@/components/InputField";
 import { apiRequest } from "@/lib/api";
-import type { AccessContext } from "@/lib/authRedirect";
+import {
+  hasCompletedBusinessOnboarding,
+  type AccessContext,
+} from "@/lib/authRedirect";
+import {
+  getCurrentAccessContext,
+  getStoredAccessContext,
+  getStoredAccessToken,
+} from "@/lib/authSession";
 
 type BusinessOnboardingResponse = {
   ok: true;
@@ -84,6 +92,7 @@ export default function BusinessOnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [checkingExistingBusiness, setCheckingExistingBusiness] = useState(true);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -108,6 +117,49 @@ export default function BusinessOnboardingPage() {
       .filter(Boolean)
       .join(", ");
   }, [form.addressLine, form.city, form.district, form.sector]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function redirectCompletedBusinessOwner() {
+      const cachedAccess = getStoredAccessContext();
+
+      if (cachedAccess && hasCompletedBusinessOnboarding(cachedAccess)) {
+        router.replace("/business-dashboard");
+        return;
+      }
+
+      const token = getStoredAccessToken();
+
+      if (!token) {
+        setCheckingExistingBusiness(false);
+        return;
+      }
+
+      try {
+        const access = await getCurrentAccessContext(token);
+
+        if (cancelled) return;
+
+        if (hasCompletedBusinessOnboarding(access)) {
+          router.replace("/business-dashboard");
+          return;
+        }
+      } catch {
+        // RequireAccess will handle expired or missing access.
+      }
+
+      if (!cancelled) {
+        setCheckingExistingBusiness(false);
+      }
+    }
+
+    redirectCompletedBusinessOwner();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   function updateField(key: keyof typeof form, value: string) {
     setForm((current) => ({
@@ -214,6 +266,10 @@ export default function BusinessOnboardingPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (checkingExistingBusiness) {
+    return null;
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   buildLoginPath,
   hasBusinessAccess,
@@ -18,7 +19,8 @@ import {
 type AccessState =
   | { status: "checking" }
   | { status: "allowed"; access: AccessContext }
-  | { status: "blocked"; reason: string; loginPath: string };
+  | { status: "blocked"; reason: string; loginPath: string }
+  | { status: "redirecting" };
 
 type RequireAccessProps = {
   children: React.ReactNode;
@@ -35,6 +37,21 @@ function getCurrentPath() {
 
 function buildIntentLoginPath(intent: "business" | "platform", currentPath: string) {
   return `/login?intent=${intent}&redirectTo=${encodeURIComponent(currentPath)}`;
+}
+
+
+function hasCompletedBusinessOnboarding(access: AccessContext) {
+  if (hasPlatformAccess(access)) {
+    return true;
+  }
+
+  if (!hasBusinessAccess(access)) {
+    return false;
+  }
+
+  return access.businesses.some(
+    (business) => business.onboardingStatus === "completed",
+  );
 }
 
 function canUseAccessForMode(access: AccessContext, mode: RequireAccessProps["mode"]) {
@@ -145,6 +162,7 @@ export default function RequireAccess({
   children,
   mode = "auth",
 }: RequireAccessProps) {
+  const router = useRouter();
   const [state, setState] = useState<AccessState>({ status: "checking" });
 
   useEffect(() => {
@@ -171,6 +189,16 @@ export default function RequireAccess({
       const cachedAccess = getStoredAccessContext();
 
       if (cachedAccess && canUseAccessForMode(cachedAccess, mode)) {
+        if (
+          mode === "business" &&
+          currentPath !== "/business-onboarding" &&
+          !hasCompletedBusinessOnboarding(cachedAccess)
+        ) {
+          setState({ status: "redirecting" });
+          router.replace("/business-onboarding");
+          return;
+        }
+
         setState({ status: "allowed", access: cachedAccess });
       }
 
@@ -181,6 +209,16 @@ export default function RequireAccess({
 
         if (!canUseAccessForMode(access, mode)) {
           setState(getBlockedState(mode, currentPath));
+          return;
+        }
+
+        if (
+          mode === "business" &&
+          currentPath !== "/business-onboarding" &&
+          !hasCompletedBusinessOnboarding(access)
+        ) {
+          setState({ status: "redirecting" });
+          router.replace("/business-onboarding");
           return;
         }
 
@@ -203,9 +241,9 @@ export default function RequireAccess({
     return () => {
       cancelled = true;
     };
-  }, [mode]);
+  }, [mode, router]);
 
-  if (state.status === "checking") {
+  if (state.status === "checking" || state.status === "redirecting") {
     return null;
   }
 

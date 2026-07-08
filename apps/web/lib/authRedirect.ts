@@ -77,6 +77,17 @@ export function hasBusinessAccess(access: AccessContext) {
   );
 }
 
+
+export function hasCompletedBusinessOnboarding(access: AccessContext) {
+  if (!hasBusinessAccess(access)) {
+    return false;
+  }
+
+  return access.businesses.some(
+    (business) => business.onboardingStatus === "completed",
+  );
+}
+
 export function getPostAuthRedirectPath(params: {
   access: AccessContext;
   redirectTo?: string | null;
@@ -87,7 +98,9 @@ export function getPostAuthRedirectPath(params: {
   }
 
   if (hasBusinessAccess(params.access)) {
-    return BUSINESS_HOME_PATH;
+    return hasCompletedBusinessOnboarding(params.access)
+      ? BUSINESS_HOME_PATH
+      : "/business-onboarding";
   }
 
   return getSafeRedirectPath(params.redirectTo, params.fallback ?? SAFE_FALLBACK_PATH);
