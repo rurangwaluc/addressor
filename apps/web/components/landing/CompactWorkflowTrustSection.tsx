@@ -24,7 +24,7 @@ const steps: Step[] = [
   },
 ];
 
-const trust = ["Verified places", "Real visuals", "Fresh updates", "Business-ready"];
+const trust = ["Checked places", "Real photos", "Fresh places", "For businesses"];
 
 export default function CompactWorkflowTrustSection() {
   return (
@@ -104,22 +104,22 @@ export default function CompactWorkflowTrustSection() {
 
                 <div className="mt-6 flex flex-col gap-3 min-[430px]:flex-row lg:justify-end">
                   <Link
-                    href="/signup"
+                    href="#places"
                     className="inline-flex items-center justify-center gap-3 rounded-full bg-[#1ca8cb] px-6 py-4 text-sm font-black text-white shadow-2xl transition hover:scale-[1.02]"
                   >
-                    Start exploring
+                    Find places
                     <span>↗</span>
                   </Link>
 
                   <Link
-                    href="/business-login"
+                    href="/business-onboarding"
                     className="inline-flex items-center justify-center rounded-full border px-6 py-4 text-sm font-black transition hover:border-[#1ca8cb] hover:text-[#1ca8cb]"
                     style={{
                       borderColor: "var(--flow-border)",
                       color: "var(--flow-text)",
                     }}
                   >
-                    List your business
+                    Add your business
                   </Link>
                 </div>
               </div>

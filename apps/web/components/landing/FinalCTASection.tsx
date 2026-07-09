@@ -40,20 +40,20 @@ export default function FinalCTASection() {
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3 min-[430px]:flex-row">
                 <Link
-                  href="/signup"
+                  href="#places"
                   className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-white px-6 py-4 text-sm font-black text-[#263f66] shadow-xl transition hover:scale-[1.02] min-[430px]:w-auto"
                 >
-                  Explore Addressor
+                  Find places
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-[#1ca8cb] text-white">
                     ↗
                   </span>
                 </Link>
 
                 <Link
-                  href="/business-login"
+                  href="/business-onboarding"
                   className="inline-flex w-full items-center justify-center rounded-full border border-white/24 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/16 min-[430px]:w-auto"
                 >
-                  List your business
+                  Add your business
                 </Link>
               </div>
             </div>

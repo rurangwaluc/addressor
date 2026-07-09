@@ -16,7 +16,7 @@ const proofCards = [
   },
   {
     value: "Visible",
-    title: "Less guessing",
+    title: "Easier choices",
     text: "Discovery should not depend on old posts, scattered chats, or random recommendations.",
   },
 ];
@@ -194,7 +194,7 @@ export default function TrustProofSection() {
                 </Link>
 
                 <Link
-                  href="/business-login"
+                  href="/business-onboarding"
                   className="inline-flex items-center justify-center rounded-full border px-6 py-4 text-sm font-black transition hover:-translate-y-1"
                   style={{
                     borderColor: "var(--trust-border)",

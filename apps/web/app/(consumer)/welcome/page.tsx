@@ -73,7 +73,7 @@ export default function WelcomePage() {
                     color: "var(--accent-contrast)",
                   }}
                 >
-                  Explore Addressor
+                  Find places
                 </Link>
 
                 <Link
@@ -85,7 +85,7 @@ export default function WelcomePage() {
                     color: "var(--text)",
                   }}
                 >
-                  List your business
+                  Add your business
                 </Link>
 
                 <LogoutButton className="sm:hidden" />

@@ -338,10 +338,10 @@ export default function HeroSection() {
                   </button>
 
                   <Link
-                    href="/business-login"
+                    href="/business-onboarding"
                     className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-sm font-black text-[#292929] shadow-2xl lg:inline-flex"
                   >
-                    List your business
+                    Add your business
                     <span
                       className="grid h-7 w-7 place-items-center rounded-full text-white"
                       style={{ background: "var(--hero-primary)" }}
@@ -363,7 +363,7 @@ export default function HeroSection() {
                     ["Discover", "#hero"],
                     ["Compare categories", "#discover"],
                     ["Book or save", "#book"],
-                    ["List your business", "/business-login"],
+                    ["Add your business", "/business-onboarding"],
                   ].map(([item, href]) => (
                     <Link
                       key={item}
@@ -405,10 +405,10 @@ export default function HeroSection() {
 
                   <div className="mt-8 flex flex-col gap-3 min-[420px]:flex-row">
                     <Link
-                      href="/signup"
+                      href="#places"
                       className="inline-flex items-center justify-center gap-3 rounded-full bg-white px-6 py-4 text-sm font-black text-[#292929] shadow-2xl transition hover:scale-[1.02]"
                     >
-                      Explore Kigali
+                      Find places
                       <span
                         className="grid h-7 w-7 place-items-center rounded-full text-white"
                         style={{ background: "var(--hero-primary)" }}
@@ -418,10 +418,10 @@ export default function HeroSection() {
                     </Link>
 
                     <Link
-                      href="/business-login"
+                      href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/28 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/16"
                     >
-                      List your business
+                      Add your business
                     </Link>
                   </div>
                 </div>
@@ -475,10 +475,10 @@ export default function HeroSection() {
 
                     <div className="flex flex-wrap items-center gap-3 border-t border-white/10 p-5 sm:p-6">
                       {[
-                        "Updated daily",
-                        "Trusted places",
-                        "Real visuals",
-                        "Live experiences",
+                        "Fresh places",
+                        "Checked places",
+                        "Real photos",
+                        "Things to do",
                       ].map((item) => (
                         <span
                           key={item}
@@ -516,10 +516,10 @@ export default function HeroSection() {
 
                   <div className="mt-7 flex flex-col gap-3 min-[430px]:flex-row">
                     <Link
-                      href="/signup"
+                      href="#places"
                       className="inline-flex items-center justify-center gap-3 rounded-full bg-white px-5 py-4 text-sm font-black text-[#292929] shadow-2xl"
                     >
-                      Explore Addressor
+                      Find places
                       <span
                         className="grid h-7 w-7 place-items-center rounded-full text-white"
                         style={{ background: "var(--hero-primary)" }}
@@ -529,15 +529,15 @@ export default function HeroSection() {
                     </Link>
 
                     <Link
-                      href="/business-login"
+                      href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/24 bg-white/10 px-5 py-4 text-sm font-black text-white backdrop-blur-xl"
                     >
-                      List your business
+                      Add your business
                     </Link>
                   </div>
 
                   <div className="mt-7 flex flex-wrap gap-2">
-                    {["Trusted places", "Real visuals", "Updated daily"].map((item) => (
+                    {["Checked places", "Real photos", "Fresh places"].map((item) => (
                       <span
                         key={item}
                         className="rounded-full border border-white/18 bg-black/16 px-4 py-2 text-xs font-black text-white/78 backdrop-blur-xl"

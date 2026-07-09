@@ -218,7 +218,7 @@ export default function BookingFlowSection() {
                       </Link>
 
                       <Link
-                        href="/business-login"
+                        href="/business-onboarding"
                         className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/10 px-5 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:-translate-y-1"
                       >
                         Contact business
@@ -243,7 +243,7 @@ export default function BookingFlowSection() {
                     </p>
 
                     <h4 className="mt-3 text-2xl font-black tracking-tight">
-                        Less guessing
+                        Easier choices
                     </h4>
 
                     <p

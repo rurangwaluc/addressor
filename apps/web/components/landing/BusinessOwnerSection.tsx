@@ -206,10 +206,10 @@ export default function BusinessOwnerSection() {
 
               <div className="mt-7 grid gap-3 min-[430px]:grid-cols-2">
                 <Link
-                  href="/business-login"
+                  href="/business-onboarding"
                   className="inline-flex items-center justify-center gap-3 rounded-full bg-[#1ca8cb] px-6 py-4 text-sm font-black text-white shadow-2xl transition hover:-translate-y-1"
                 >
-                  List your business
+                  Add your business
                   <span>↗</span>
                 </Link>
 

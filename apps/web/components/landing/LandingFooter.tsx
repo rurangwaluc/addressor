@@ -11,7 +11,7 @@ const productLinks: FooterLink[] = [
 
 const resourceLinks: FooterLink[] = [
   ["How it works", "#book"],
-  ["For businesses", "/business-login"],
+  ["For businesses", "/business-onboarding"],
   ["Trust & safety", "#book"],
   ["Help center", "/help"],
 ];
@@ -33,13 +33,13 @@ const highlights = [
     number: "02",
     title: "Trusted signals",
     text: "Freshness, location, atmosphere, and availability in one view.",
-    metric: "Less guessing",
+    metric: "Easier choices",
   },
   {
     number: "03",
     title: "Business action",
     text: "Turn discovery into saved plans, contacts, and booking intent.",
-    metric: "Clear next step",
+    metric: "Know what to do",
   },
 ];
 
@@ -120,22 +120,22 @@ export default function LandingFooter() {
 
               <div className="mt-7 flex flex-col gap-3 min-[430px]:flex-row">
                 <Link
-                  href="/signup"
+                  href="#places"
                   className="inline-flex items-center justify-center gap-3 rounded-full bg-[#1ca8cb] px-6 py-4 text-sm font-black text-white shadow-2xl transition hover:scale-[1.02]"
                 >
-                  Explore Addressor
+                  Find places
                   <span>↗</span>
                 </Link>
 
                 <Link
-                  href="/business-login"
+                  href="/business-onboarding"
                   className="inline-flex items-center justify-center rounded-full border px-6 py-4 text-sm font-black transition hover:border-[#1ca8cb] hover:text-[#1ca8cb]"
                   style={{
                     borderColor: "var(--footer-border)",
                     color: "var(--footer-text)",
                   }}
                 >
-                  List your business
+                  Add your business
                 </Link>
               </div>
 
@@ -223,8 +223,8 @@ export default function LandingFooter() {
           >
             <p>© {new Date().getFullYear()} Addressor. Built for Rwanda discovery.</p>
 
-            <Link href="/business-login" className="transition hover:text-[#1ca8cb]">
-              List your business →
+            <Link href="/business-onboarding" className="transition hover:text-[#1ca8cb]">
+              Add your business →
             </Link>
           </div>
         </div>
