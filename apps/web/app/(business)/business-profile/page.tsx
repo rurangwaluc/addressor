@@ -144,7 +144,7 @@ function Field({
   return (
     <label className="block">
       <span
-        className="text-xs font-black uppercase tracking-[0.18em]"
+        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.18em]"
         style={{ color: "var(--muted)" }}
       >
         {label}
@@ -181,7 +181,7 @@ function TextArea({
   return (
     <label className="block">
       <span
-        className="text-xs font-black uppercase tracking-[0.18em]"
+        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.18em]"
         style={{ color: "var(--muted)" }}
       >
         {label}
@@ -331,7 +331,7 @@ export default function BusinessProfilePage() {
           >
             <Link href="/business-dashboard" className="flex min-w-0 items-center gap-3">
               <span
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full whitespace-nowrap text-sm font-black"
                 style={{
                   background: "var(--accent)",
                   color: "var(--accent-contrast)",
@@ -341,7 +341,7 @@ export default function BusinessProfilePage() {
               </span>
 
               <span className="min-w-0">
-                <span className="block truncate text-sm font-black">
+                <span className="block truncate whitespace-nowrap text-sm font-black">
                   Business profile
                 </span>
                 <span
@@ -356,7 +356,7 @@ export default function BusinessProfilePage() {
             <div className="flex items-center justify-between gap-2 sm:justify-end">
               <Link
                 href="/business-dashboard"
-                className="rounded-full border px-4 py-3 text-sm font-black"
+                className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
                 style={{
                   borderColor: "var(--border)",
                   color: "var(--text)",
@@ -383,7 +383,7 @@ export default function BusinessProfilePage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p
-                    className="text-xs font-black uppercase tracking-[0.24em]"
+                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.24em]"
                     style={{ color: "var(--accent)" }}
                   >
                     Edit profile
@@ -405,7 +405,7 @@ export default function BusinessProfilePage() {
                 <button
                   type="submit"
                   disabled={saving || loading}
-                  className="rounded-full px-5 py-3 text-sm font-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-full px-5 py-3 whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
                     background: "var(--accent)",
                     color: "var(--accent-contrast)",
@@ -417,7 +417,7 @@ export default function BusinessProfilePage() {
 
               {notice ? (
                 <p
-                  className="mt-5 rounded-[1rem] border px-4 py-3 text-sm font-black"
+                  className="mt-5 rounded-[1rem] border px-4 py-3 whitespace-nowrap text-sm font-black"
                   style={{
                     background: "var(--surface-strong)",
                     borderColor: "var(--border)",
@@ -429,7 +429,7 @@ export default function BusinessProfilePage() {
               ) : null}
 
               {error ? (
-                <p className="mt-5 rounded-[1rem] border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-black text-red-300">
+                <p className="mt-5 rounded-[1rem] border border-red-500/40 bg-red-500/10 px-4 py-3 whitespace-nowrap text-sm font-black text-red-300">
                   {error}
                 </p>
               ) : null}
@@ -464,7 +464,7 @@ export default function BusinessProfilePage() {
 
                     <label className="block">
                       <span
-                        className="text-xs font-black uppercase tracking-[0.18em]"
+                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.18em]"
                         style={{ color: "var(--muted)" }}
                       >
                         Business type
@@ -645,7 +645,7 @@ export default function BusinessProfilePage() {
                       )}
                     </div>
 
-                    <p className="mt-5 text-xs font-black uppercase tracking-[0.2em] text-white/70">
+                    <p className="mt-5 whitespace-nowrap text-xs font-black uppercase tracking-[0.2em] text-white/70">
                       {form.category || "Business"}
                     </p>
 
@@ -669,7 +669,7 @@ export default function BusinessProfilePage() {
                 }}
               >
                 <p
-                  className="text-xs font-black uppercase tracking-[0.22em]"
+                  className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
                   style={{ color: "var(--accent)" }}
                 >
                   Customer preview
@@ -692,12 +692,12 @@ export default function BusinessProfilePage() {
                       }}
                     >
                       <p
-                        className="text-xs font-black uppercase tracking-[0.16em]"
+                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.16em]"
                         style={{ color: "var(--muted)" }}
                       >
                         {label}
                       </p>
-                      <p className="mt-2 break-words text-sm font-black">{value}</p>
+                      <p className="mt-2 break-words whitespace-nowrap text-sm font-black">{value}</p>
                     </div>
                   ))}
                 </div>
@@ -711,7 +711,7 @@ export default function BusinessProfilePage() {
                 }}
               >
                 <p
-                  className="text-xs font-black uppercase tracking-[0.22em]"
+                  className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
                   style={{ color: "var(--accent)" }}
                 >
                   Next pages
@@ -727,7 +727,7 @@ export default function BusinessProfilePage() {
                     <Link
                       key={label}
                       href={href}
-                      className="rounded-[1.15rem] border p-4 text-sm font-black"
+                      className="rounded-[1.15rem] border p-4 whitespace-nowrap text-sm font-black"
                       style={{
                         background: "var(--surface-strong)",
                         borderColor: "var(--border)",

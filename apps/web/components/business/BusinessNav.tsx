@@ -31,7 +31,7 @@ export default function BusinessNav() {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-[1rem] px-3 py-3 text-center text-sm font-black transition hover:scale-[1.01]"
+            className="rounded-[1rem] px-3 py-3 text-center whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
             style={{
               background: active ? "var(--accent)" : "var(--surface-strong)",
               color: active ? "var(--accent-contrast)" : "var(--text)",

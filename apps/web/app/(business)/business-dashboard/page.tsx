@@ -137,7 +137,7 @@ export default function BusinessDashboardPage() {
             >
               <Link href="/" className="flex min-w-0 items-center gap-3">
                 <span
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full whitespace-nowrap text-sm font-black"
                   style={{
                     background: "var(--accent)",
                     color: "var(--accent-contrast)",
@@ -147,7 +147,7 @@ export default function BusinessDashboardPage() {
                 </span>
 
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-black">
+                  <span className="block truncate whitespace-nowrap text-sm font-black">
                     Addressor business
                   </span>
                   <span
@@ -179,7 +179,7 @@ export default function BusinessDashboardPage() {
                   <div className="grid gap-4 min-[760px]:grid-cols-[1fr_18rem] min-[760px]:items-start sm:gap-6">
                     <div>
                       <p
-                        className="text-xs font-black uppercase tracking-[0.24em]"
+                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.24em]"
                         style={{ color: "var(--accent)" }}
                       >
                         Today
@@ -199,7 +199,7 @@ export default function BusinessDashboardPage() {
 
                       <div className="mt-6 flex flex-wrap gap-2">
                         <span
-                          className="rounded-full border px-4 py-2 text-xs font-black"
+                          className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
                           style={{
                             background: "var(--surface-strong)",
                             borderColor: "var(--border)",
@@ -210,7 +210,7 @@ export default function BusinessDashboardPage() {
                         </span>
 
                         <span
-                          className="rounded-full border px-4 py-2 text-xs font-black"
+                          className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
                           style={{
                             background: "var(--surface-strong)",
                             borderColor: "var(--border)",
@@ -222,7 +222,7 @@ export default function BusinessDashboardPage() {
                         </span>
 
                         <span
-                          className="rounded-full border px-4 py-2 text-xs font-black"
+                          className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
                           style={{
                             background: "var(--surface-strong)",
                             borderColor: "var(--border)",
@@ -241,7 +241,7 @@ export default function BusinessDashboardPage() {
                       }}
                     >
                       <p
-                        className="text-xs font-black uppercase tracking-[0.2em]"
+                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.2em]"
                         style={{ color: "var(--muted)" }}
                       >
                         Profile strength
@@ -252,7 +252,7 @@ export default function BusinessDashboardPage() {
                           {setupPercent}%
                         </strong>
                         <span
-                          className="rounded-full border px-3 py-2 text-xs font-black"
+                          className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black"
                           style={{
                             borderColor: "var(--border)",
                             color: "var(--accent)",
@@ -302,7 +302,7 @@ export default function BusinessDashboardPage() {
                       }}
                     >
                       <p
-                        className="text-xs font-black uppercase tracking-[0.18em]"
+                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.18em]"
                         style={{ color: "var(--muted)" }}
                       >
                         {label}
@@ -330,7 +330,7 @@ export default function BusinessDashboardPage() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p
-                        className="text-xs font-black uppercase tracking-[0.22em]"
+                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
                         style={{ color: "var(--accent)" }}
                       >
                         Needs attention
@@ -342,7 +342,7 @@ export default function BusinessDashboardPage() {
 
                     <Link
                       href="/"
-                      className="inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm font-black transition hover:scale-[1.01]"
+                      className="inline-flex items-center justify-center rounded-full border px-5 py-3 whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
                       style={{
                         borderColor: "var(--border)",
                         color: "var(--text)",
@@ -363,7 +363,7 @@ export default function BusinessDashboardPage() {
                         }}
                       >
                         <span
-                          className="rounded-full border px-3 py-2 text-xs font-black"
+                          className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black"
                           style={{
                             borderColor: "var(--border)",
                             color: "var(--accent)",
@@ -395,7 +395,7 @@ export default function BusinessDashboardPage() {
                   }}
                 >
                   <p
-                    className="text-xs font-black uppercase tracking-[0.22em]"
+                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
                     style={{ color: "var(--accent)" }}
                   >
                     Quick actions
@@ -411,7 +411,7 @@ export default function BusinessDashboardPage() {
                       <Link
                         key={label}
                         href={href}
-                        className="rounded-[1.15rem] border p-3 text-sm font-black transition hover:scale-[1.01] sm:rounded-[1.25rem] sm:p-4"
+                        className="rounded-[1.15rem] border p-3 whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01] sm:rounded-[1.25rem] sm:p-4"
                         style={{
                           background: "var(--surface-strong)",
                           borderColor: "var(--border)",
@@ -434,7 +434,7 @@ export default function BusinessDashboardPage() {
                   }}
                 >
                   <p
-                    className="text-xs font-black uppercase tracking-[0.22em]"
+                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
                     style={{ color: "var(--accent)" }}
                   >
                     Readiness checklist
@@ -451,7 +451,7 @@ export default function BusinessDashboardPage() {
                         }}
                       >
                         <span
-                          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black"
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-full whitespace-nowrap text-sm font-black"
                           style={{
                             background: item.done ? "var(--accent)" : "transparent",
                             color: item.done
@@ -464,7 +464,7 @@ export default function BusinessDashboardPage() {
                         </span>
 
                         <span>
-                          <strong className="block text-sm font-black">
+                          <strong className="block whitespace-nowrap text-sm font-black">
                             {item.title}
                           </strong>
                           <span
@@ -487,7 +487,7 @@ export default function BusinessDashboardPage() {
                   }}
                 >
                   <p
-                    className="text-xs font-black uppercase tracking-[0.22em]"
+                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
                     style={{ color: "var(--accent)" }}
                   >
                     Recent activity
@@ -510,7 +510,7 @@ export default function BusinessDashboardPage() {
                       (item) => (
                         <div
                           key={item}
-                          className="flex items-center justify-between rounded-full border px-4 py-3 text-sm font-black"
+                          className="flex items-center justify-between rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
                           style={{
                             background: "var(--surface-strong)",
                             borderColor: "var(--border)",
