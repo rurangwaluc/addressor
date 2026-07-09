@@ -341,7 +341,7 @@ export default function HeroSection() {
                     href="/business-onboarding"
                     className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-sm font-black text-[#292929] shadow-2xl lg:inline-flex"
                   >
-                    Add your business
+                    List your business
                     <span
                       className="grid h-7 w-7 place-items-center rounded-full text-white"
                       style={{ background: "var(--hero-primary)" }}
@@ -363,7 +363,7 @@ export default function HeroSection() {
                     ["Discover", "#hero"],
                     ["Compare categories", "#discover"],
                     ["Book or save", "#book"],
-                    ["Add your business", "/business-onboarding"],
+                    ["List your business", "/business-onboarding"],
                   ].map(([item, href]) => (
                     <Link
                       key={item}
@@ -421,7 +421,7 @@ export default function HeroSection() {
                       href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/28 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/16"
                     >
-                      Add your business
+                      List your business
                     </Link>
                   </div>
                 </div>
@@ -532,7 +532,7 @@ export default function HeroSection() {
                       href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/24 bg-white/10 px-5 py-4 text-sm font-black text-white backdrop-blur-xl"
                     >
-                      Add your business
+                      List your business
                     </Link>
                   </div>
 
