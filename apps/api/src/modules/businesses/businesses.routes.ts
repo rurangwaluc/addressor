@@ -4,6 +4,7 @@ import { requireVerifiedUser } from "../../app/middleware/requireRole.js";
 import {
   completeBusinessOnboardingHandler,
   myBusinessesHandler,
+  updateBusinessProfileHandler,
 } from "./businesses.controller.js";
 
 export default async function businessesRoutes(fastify: FastifyInstance) {
@@ -21,5 +22,13 @@ export default async function businessesRoutes(fastify: FastifyInstance) {
       preHandler: [requireAuth],
     },
     myBusinessesHandler,
+  );
+
+  fastify.patch(
+    "/:businessId/profile",
+    {
+      preHandler: [requireAuth, requireVerifiedUser()],
+    },
+    updateBusinessProfileHandler,
   );
 }

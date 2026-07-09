@@ -5,6 +5,7 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import RequireAccess from "@/components/auth/RequireAccess";
 import LogoutButton from "@/components/auth/LogoutButton";
+import BusinessNav from "@/components/business/BusinessNav";
 import type { AccessContext } from "@/lib/authRedirect";
 import {
   getCurrentAccessContext,
@@ -163,6 +164,8 @@ export default function BusinessDashboardPage() {
                 <LogoutButton />
               </div>
             </nav>
+
+            <BusinessNav />
 
             <div className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.75fr]">
               <section className="grid gap-5">
