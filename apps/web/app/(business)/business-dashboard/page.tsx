@@ -124,7 +124,7 @@ export default function BusinessDashboardPage() {
           className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
           style={{ background: "var(--background)", color: "var(--text)" }}
         >
-          <div className="imigongo-pattern fixed inset-0 opacity-25" />
+          <div className="imigongo-pattern fixed inset-0 opacity-10" />
 
           <section className="relative mx-auto w-full max-w-7xl">
             <nav
@@ -173,7 +173,7 @@ export default function BusinessDashboardPage() {
                     borderColor: "var(--border)",
                   }}
                 >
-                  <div className="grid gap-6 lg:grid-cols-[1fr_18rem] lg:items-start">
+                  <div className="grid gap-4 min-[760px]:grid-cols-[1fr_18rem] min-[760px]:items-start sm:gap-6">
                     <div>
                       <p
                         className="text-xs font-black uppercase tracking-[0.24em]"
@@ -182,7 +182,7 @@ export default function BusinessDashboardPage() {
                         Today
                       </p>
 
-                      <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-[-0.06em] sm:text-5xl lg:text-6xl">
+                      <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-[-0.06em] min-[390px]:text-4xl sm:text-5xl lg:text-6xl">
                         {business?.businessName ?? "Your business"}
                       </h1>
 
@@ -283,7 +283,7 @@ export default function BusinessDashboardPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-5 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
                   {[
                     ["Profile views", "0", "People who opened your page"],
                     ["Saves", "0", "People who kept your place"],
@@ -292,7 +292,7 @@ export default function BusinessDashboardPage() {
                   ].map(([label, value, text]) => (
                     <article
                       key={label}
-                      className="rounded-[1.5rem] border p-5 shadow-sm"
+                      className="rounded-[1.35rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5"
                       style={{
                         background: "var(--surface)",
                         borderColor: "var(--border)",
@@ -304,7 +304,7 @@ export default function BusinessDashboardPage() {
                       >
                         {label}
                       </p>
-                      <strong className="mt-4 block text-4xl font-black tracking-[-0.06em]">
+                      <strong className="mt-3 block text-3xl font-black tracking-[-0.06em] sm:mt-4 sm:text-4xl">
                         {value}
                       </strong>
                       <p
@@ -349,7 +349,7 @@ export default function BusinessDashboardPage() {
                     </Link>
                   </div>
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  <div className="mt-5 grid gap-3 min-[680px]:grid-cols-3">
                     {needsAttention.slice(0, 3).map((item) => (
                       <article
                         key={item.title}
@@ -398,7 +398,7 @@ export default function BusinessDashboardPage() {
                     Quick actions
                   </p>
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
                     {[
                       ["Edit profile", "/business-profile"],
                       ["Add photos", "/business-photos"],
@@ -408,7 +408,7 @@ export default function BusinessDashboardPage() {
                       <Link
                         key={label}
                         href={href}
-                        className="rounded-[1.25rem] border p-4 text-sm font-black transition hover:scale-[1.01]"
+                        className="rounded-[1.15rem] border p-3 text-sm font-black transition hover:scale-[1.01] sm:rounded-[1.25rem] sm:p-4"
                         style={{
                           background: "var(--surface-strong)",
                           borderColor: "var(--border)",
