@@ -2,7 +2,10 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { okResponse } from "../../app/serializers/apiResponse.js";
 import { authService } from "../auth/auth.service.js";
 import { businessesService } from "./businesses.service.js";
-import { BusinessOnboardingSchema } from "./businesses.validators.js";
+import {
+  BusinessOnboardingSchema,
+  BusinessProfileUpdateSchema,
+} from "./businesses.validators.js";
 
 export async function completeBusinessOnboardingHandler(
   req: FastifyRequest,
@@ -31,4 +34,26 @@ export async function myBusinessesHandler(
   const result = await businessesService.getMyBusinesses(req.user.id);
 
   return reply.send(okResponse(result));
+}
+
+export async function updateBusinessProfileHandler(
+  req: FastifyRequest<{ Params: { businessId: string } }>,
+  reply: FastifyReply,
+) {
+  if (!req.user) throw new Error("Invalid token");
+
+  const body = BusinessProfileUpdateSchema.parse(req.body);
+  const result = await businessesService.updateProfile(
+    req.user.id,
+    req.params.businessId,
+    body,
+  );
+  const access = await authService.getAccessContext(req.user.id);
+
+  return reply.send(
+    okResponse({
+      ...result,
+      access,
+    }),
+  );
 }

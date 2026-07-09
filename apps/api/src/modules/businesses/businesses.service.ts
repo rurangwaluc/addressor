@@ -1,10 +1,13 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
 import {
   businesses,
   businessTeamMembers,
 } from "../../db/schema/businesses.schema.js";
-import type { BusinessOnboardingSchemaType } from "./businesses.validators.js";
+import type {
+  BusinessOnboardingSchemaType,
+  BusinessProfileUpdateSchemaType,
+} from "./businesses.validators.js";
 import type {
   BusinessOnboardingResponse,
   MyBusinessesResponse,
@@ -69,6 +72,35 @@ function mapBusiness(row: typeof businesses.$inferSelect) {
     logoUrl: row.logoUrl,
     coverImageUrl: row.coverImageUrl,
   };
+}
+
+async function assertCanEditBusiness(userId: string, businessId: string) {
+  const rows = await db
+    .select({
+      role: businessTeamMembers.role,
+      status: businessTeamMembers.status,
+    })
+    .from(businessTeamMembers)
+    .where(
+      and(
+        eq(businessTeamMembers.userId, userId),
+        eq(businessTeamMembers.businessId, businessId),
+      ),
+    )
+    .limit(1);
+
+  const membership = rows[0];
+
+  if (!membership || membership.status !== "active") {
+    throw new Error("Business access denied");
+  }
+
+  if (
+    membership.role !== "business_owner" &&
+    membership.role !== "business_manager"
+  ) {
+    throw new Error("Only owners and managers can edit this business");
+  }
 }
 
 export const businessesService = {
@@ -145,6 +177,49 @@ export const businessesService = {
         role: row.role,
         teamStatus: row.teamStatus,
       })),
+    };
+  },
+
+  async updateProfile(
+    userId: string,
+    businessId: string,
+    payload: BusinessProfileUpdateSchemaType,
+  ): Promise<BusinessOnboardingResponse> {
+    await assertCanEditBusiness(userId, businessId);
+
+    const displayName = payload.displayName.trim();
+    const legalName = cleanOptional(payload.legalName) ?? displayName;
+
+    const updated = await db
+      .update(businesses)
+      .set({
+        displayName,
+        legalName,
+        category: payload.category.trim(),
+        shortDescription: cleanOptional(payload.shortDescription),
+        phone: payload.phone.trim(),
+        email: cleanOptional(payload.email),
+        websiteUrl: cleanOptional(payload.websiteUrl),
+        whatsappNumber: cleanOptional(payload.whatsappNumber),
+        city: payload.city.trim(),
+        district: cleanOptional(payload.district),
+        sector: cleanOptional(payload.sector),
+        addressLine: cleanOptional(payload.addressLine),
+        logoUrl: cleanOptional(payload.logoUrl),
+        coverImageUrl: cleanOptional(payload.coverImageUrl),
+        updatedAt: new Date(),
+      })
+      .where(eq(businesses.id, businessId))
+      .returning();
+
+    const business = updated[0];
+
+    if (!business) {
+      throw new Error("Business could not be updated");
+    }
+
+    return {
+      business: mapBusiness(business),
     };
   },
 };

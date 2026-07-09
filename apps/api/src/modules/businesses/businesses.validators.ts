@@ -27,6 +27,14 @@ export const BusinessOnboardingSchema = z.object({
   coverImageUrl: optionalUrl,
 });
 
+export const BusinessProfileUpdateSchema = BusinessOnboardingSchema.extend({
+  id: z.string().uuid().optional(),
+});
+
 export type BusinessOnboardingSchemaType = z.infer<
   typeof BusinessOnboardingSchema
+>;
+
+export type BusinessProfileUpdateSchemaType = z.infer<
+  typeof BusinessProfileUpdateSchema
 >;
