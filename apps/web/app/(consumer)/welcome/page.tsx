@@ -76,6 +76,18 @@ export default function WelcomePage() {
                   Explore Addressor
                 </Link>
 
+                <Link
+                  href="/business-onboarding"
+                  className="rounded-full border px-5 py-3 text-sm font-black transition hover:scale-[1.01]"
+                  style={{
+                    background: "var(--surface-strong)",
+                    borderColor: "var(--border)",
+                    color: "var(--text)",
+                  }}
+                >
+                  List your business
+                </Link>
+
                 <LogoutButton className="sm:hidden" />
               </div>
             </div>
