@@ -64,3 +64,13 @@ export async function updateBusinessProfileHandler(
     }),
   );
 }
+
+
+export async function featuredBusinessesHandler(
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const result = await businessesService.getFeaturedBusinesses();
+
+  return reply.send(okResponse(result));
+}

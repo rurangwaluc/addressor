@@ -3,11 +3,14 @@ import { requireAuth } from "../../app/middleware/requireAuth.js";
 import { requireVerifiedUser } from "../../app/middleware/requireRole.js";
 import {
   completeBusinessOnboardingHandler,
+  featuredBusinessesHandler,
   myBusinessesHandler,
   updateBusinessProfileHandler,
 } from "./businesses.controller.js";
 
 export default async function businessesRoutes(fastify: FastifyInstance) {
+  fastify.get("/featured", featuredBusinessesHandler);
+
   fastify.post(
     "/onboarding",
     {

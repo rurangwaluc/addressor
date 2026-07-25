@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
 import {
   businesses,
@@ -177,6 +177,19 @@ export const businessesService = {
         role: row.role,
         teamStatus: row.teamStatus,
       })),
+    };
+  },
+
+  async getFeaturedBusinesses() {
+    const rows = await db
+      .select()
+      .from(businesses)
+      .where(eq(businesses.onboardingStatus, "completed"))
+      .orderBy(desc(businesses.updatedAt))
+      .limit(4);
+
+    return {
+      businesses: rows.map(mapBusiness),
     };
   },
 
