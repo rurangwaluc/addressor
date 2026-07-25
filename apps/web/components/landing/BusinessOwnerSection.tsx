@@ -214,7 +214,7 @@ export default function BusinessOwnerSection() {
                 </Link>
 
                 <Link
-                  href="/signup"
+                  href="/login"
                   className="inline-flex items-center justify-center rounded-full border px-6 py-4 text-sm font-black transition hover:-translate-y-1"
                   style={{
                     borderColor: "var(--business-border)",

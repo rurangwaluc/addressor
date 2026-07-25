@@ -208,10 +208,10 @@ export default function BookingFlowSection() {
 
                     <div className="mt-5 grid gap-3 sm:grid-cols-2">
                       <Link
-                        href="/signup"
+                        href="/login"
                         className="inline-flex items-center justify-center gap-3 rounded-full bg-white px-5 py-4 text-sm font-black text-[#292929] shadow-2xl transition hover:-translate-y-1"
                       >
-                        Save plan
+                        Login to save
                         <span className="grid h-7 w-7 place-items-center rounded-full bg-[#1ca8cb] text-white">
                           ↗
                         </span>

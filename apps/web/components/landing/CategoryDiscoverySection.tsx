@@ -64,7 +64,7 @@ export default function CategoryDiscoverySection() {
   return (
     <section
       ref={sectionRef}
-      id="discover"
+      id="places"
       className="category-section relative overflow-hidden"
     >
       <style>{`
@@ -197,7 +197,7 @@ export default function CategoryDiscoverySection() {
             {categories.map((item) => (
               <Link
                 key={item.title}
-                href="/signup"
+                href="#featured-places"
                 className={[
                   "category-card group relative overflow-hidden rounded-[1.45rem] border shadow-2xl sm:rounded-[1.7rem] lg:min-h-[21.5rem] lg:rounded-[2rem]",
                   item.className,

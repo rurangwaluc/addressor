@@ -186,10 +186,10 @@ export default function TrustProofSection() {
 
               <div className="mt-8 flex flex-col gap-3 min-[430px]:flex-row">
                 <Link
-                  href="/signup"
+                  href="/login"
                   className="inline-flex items-center justify-center gap-3 rounded-full bg-[#1ca8cb] px-6 py-4 text-sm font-black text-white shadow-2xl transition hover:-translate-y-1"
                 >
-                  Create verified account
+                  Login
                   <span>↗</span>
                 </Link>
 

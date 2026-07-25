@@ -3,17 +3,17 @@ import Link from "next/link";
 type FooterLink = [label: string, href: string];
 
 const productLinks: FooterLink[] = [
-  ["Places", "#discover"],
-  ["Restaurants", "#discover"],
-  ["Stays", "#discover"],
-  ["Events", "#discover"],
+  ["Places", "#places"],
+  ["Restaurants", "#places"],
+  ["Stays", "#places"],
+  ["Events", "#places"],
 ];
 
 const resourceLinks: FooterLink[] = [
   ["How it works", "#book"],
   ["For businesses", "/business-onboarding"],
   ["Trust & safety", "#book"],
-  ["Help center", "/help"],
+  ["Login", "/login"],
 ];
 
 const legalLinks: FooterLink[] = [

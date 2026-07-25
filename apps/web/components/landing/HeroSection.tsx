@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const navItems = ["Places", "Events", "Stays", "Business"];
+const navItems = ["Places", "Events", "Stays", "For business"];
 const chips = ["Restaurants", "Stays", "Events"];
 
 function SunIcon() {
@@ -308,7 +308,7 @@ export default function HeroSection() {
                     {navItems.map((item, index) => (
                       <Link
                         key={item}
-                        href="#discover"
+                        href="#places"
                         className="rounded-full border px-4 py-2 text-sm font-black text-white"
                         style={{
                           background:
@@ -325,6 +325,27 @@ export default function HeroSection() {
                 </div>
 
                 <div className="relative z-40 ml-auto flex items-center gap-2">
+                  <Link
+                    href="/login"
+                    className="hidden rounded-full border bg-white/12 px-4 py-2.5 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/18 lg:inline-flex"
+                    style={{ borderColor: "rgba(255,255,255,.24)" }}
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    href="/business-onboarding"
+                    className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-sm font-black text-[#292929] shadow-2xl lg:inline-flex"
+                  >
+                    Add your business
+                    <span
+                      className="grid h-7 w-7 place-items-center rounded-full text-white"
+                      style={{ background: "var(--hero-primary)" }}
+                    >
+                      ↗
+                    </span>
+                  </Link>
+
                   <HeroThemeToggle />
 
                   <button
@@ -336,19 +357,6 @@ export default function HeroSection() {
                   >
                     <MenuIcon open={menuOpen} />
                   </button>
-
-                  <Link
-                    href="/business-onboarding"
-                    className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-sm font-black text-[#292929] shadow-2xl lg:inline-flex"
-                  >
-                    List your business
-                    <span
-                      className="grid h-7 w-7 place-items-center rounded-full text-white"
-                      style={{ background: "var(--hero-primary)" }}
-                    >
-                      ↗
-                    </span>
-                  </Link>
                 </div>
 
                 <div
@@ -361,9 +369,10 @@ export default function HeroSection() {
                 >
                   {[
                     ["Discover", "#hero"],
-                    ["Compare categories", "#discover"],
+                    ["Explore places", "#places"],
                     ["Book or save", "#book"],
-                    ["List your business", "/business-onboarding"],
+                    ["Login", "/login"],
+                    ["Add your business", "/business-onboarding"],
                   ].map(([item, href]) => (
                     <Link
                       key={item}
@@ -421,7 +430,7 @@ export default function HeroSection() {
                       href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/28 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/16"
                     >
-                      List your business
+                      Add your business
                     </Link>
                   </div>
                 </div>
@@ -532,7 +541,7 @@ export default function HeroSection() {
                       href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/24 bg-white/10 px-5 py-4 text-sm font-black text-white backdrop-blur-xl"
                     >
-                      List your business
+                      Add your business
                     </Link>
                   </div>
 
@@ -565,7 +574,7 @@ export default function HeroSection() {
               </div>
 
               <Link
-                href="#discover"
+                href="#places"
                 className="absolute bottom-3 right-3 z-30 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-2 text-xs font-black text-white shadow-2xl backdrop-blur-xl lg:hidden"
               >
                 Scroll
