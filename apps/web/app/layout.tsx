@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="addressor-font" suppressHydrationWarning>
-      <body>{children}</body>
+      <body className="addressor-body">{children}</body>
     </html>
   );
 }

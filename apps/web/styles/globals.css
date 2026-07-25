@@ -90,9 +90,12 @@ body {
     );
   background-size: auto, 120px 120px, 120px 120px;
   background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
-.dark body {
+.dark body,
+.dark body.addressor-body {
   background-color: var(--bg);
   background-image:
     linear-gradient(rgba(41, 41, 41, 0.46), rgba(41, 41, 41, 0.46)),
@@ -152,3 +155,28 @@ input::placeholder {
   color: var(--muted);
   opacity: 0.78;
 }
+
+/* Addressor app tap feedback */
+body.addressor-body a,
+body.addressor-body button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body.addressor-body a[href],
+body.addressor-body button:not(:disabled) {
+  cursor: pointer;
+}
+
+body.addressor-body a[href]:active,
+body.addressor-body button:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.addressor-body a[href]:active,
+  body.addressor-body button:not(:disabled):active {
+    transform: none;
+  }
+}
+
