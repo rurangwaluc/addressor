@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull, or } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
 import {
   businesses,
@@ -184,9 +184,15 @@ export const businessesService = {
     const rows = await db
       .select()
       .from(businesses)
-      .where(eq(businesses.onboardingStatus, "completed"))
+      .where(
+        and(
+          eq(businesses.onboardingStatus, "completed"),
+          isNotNull(businesses.coverImageUrl),
+          or(isNotNull(businesses.phone), isNotNull(businesses.whatsappNumber)),
+        ),
+      )
       .orderBy(desc(businesses.updatedAt))
-      .limit(4);
+      .limit(6);
 
     return {
       businesses: rows.map(mapBusiness),

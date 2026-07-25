@@ -119,7 +119,7 @@ export default function CompactWorkflowTrustSection() {
                       color: "var(--flow-text)",
                     }}
                   >
-                    Add your business
+                    List your place
                   </Link>
                 </div>
               </div>

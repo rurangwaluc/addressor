@@ -53,7 +53,7 @@ export default function FinalCTASection() {
                   href="/business-onboarding"
                   className="inline-flex w-full items-center justify-center rounded-full border border-white/24 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/16 min-[430px]:w-auto"
                 >
-                  Add your business
+                  List your place
                 </Link>
               </div>
             </div>

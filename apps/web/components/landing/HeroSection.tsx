@@ -1,9 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const navItems = ["Places", "Events", "Stays", "For business"];
+const navItems = [
+  { label: "Places", href: "#featured-places" },
+  { label: "Restaurants", href: "#places" },
+  { label: "Stays", href: "#places" },
+  { label: "Events", href: "#places" },
+];
+
+const mobileNavItems = [
+  { label: "Find places", href: "#featured-places" },
+  { label: "Restaurants", href: "#places" },
+  { label: "Stays", href: "#places" },
+  { label: "Events", href: "#places" },
+  { label: "For businesses", href: "/business-onboarding" },
+  { label: "Login", href: "/login" },
+  { label: "List your place", href: "/business-onboarding" },
+];
+
 const chips = ["Restaurants", "Stays", "Events"];
 
 function SunIcon() {
@@ -102,6 +118,35 @@ function HeroThemeToggle() {
 
 export default function HeroSection() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node | null;
+
+      if (target && headerRef.current?.contains(target)) {
+        return;
+      }
+
+      setMenuOpen(false);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <section id="hero" className="addressor-hero relative overflow-hidden">
@@ -112,6 +157,13 @@ export default function HeroSection() {
           --hero-border: rgba(16,16,16,.12);
           --hero-frame: rgba(255,255,255,.92);
           --hero-primary: #1ca8cb;
+          --header-shell: rgba(255,255,255,.92);
+          --header-text: #141414;
+          --header-muted: rgba(20,20,20,.62);
+          --header-border: rgba(16,16,16,.10);
+          --header-soft: rgba(16,16,16,.06);
+          --header-menu: rgba(255,255,255,.72);
+          --header-action: #1ca8cb;
           background: var(--hero-bg);
           color: var(--hero-text);
           font-family: var(--font-quicksand), system-ui, sans-serif;
@@ -122,6 +174,13 @@ export default function HeroSection() {
           --hero-text: #f6f6f6;
           --hero-border: rgba(246,246,246,.13);
           --hero-frame: rgba(41,41,41,.92);
+          --header-shell: rgba(24,24,24,.88);
+          --header-text: #f6f6f6;
+          --header-muted: rgba(246,246,246,.64);
+          --header-border: rgba(255,255,255,.12);
+          --header-soft: rgba(255,255,255,.08);
+          --header-menu: rgba(255,255,255,.08);
+          --header-action: #1ca8cb;
         }
 
         @keyframes heroImageMotion {
@@ -157,36 +216,7 @@ export default function HeroSection() {
         }
 
         .top-right-notch {
-          position: absolute;
-          top: -1px;
-          right: -1px;
-          width: 17.75rem;
-          height: 5.55rem;
-          background: var(--hero-frame);
-          border-bottom-left-radius: 2.35rem;
-          z-index: 21;
-        }
-
-        .top-right-notch::before {
-          content: "";
-          position: absolute;
-          left: -2.45rem;
-          top: 0;
-          width: 2.45rem;
-          height: 2.45rem;
-          border-top-right-radius: 2.45rem;
-          box-shadow: 1.2rem -1.2rem 0 1.16rem var(--hero-frame);
-        }
-
-        .top-right-notch::after {
-          content: "";
-          position: absolute;
-          right: 0;
-          bottom: -2.45rem;
-          width: 2.45rem;
-          height: 2.45rem;
-          border-top-right-radius: 2.45rem;
-          box-shadow: 1.2rem -1.2rem 0 1.16rem var(--hero-frame);
+          display: none;
         }
 
         .bottom-left-notch {
@@ -266,6 +296,191 @@ export default function HeroSection() {
       </div>
 
       <div className="relative mx-auto max-w-[96rem] px-2 py-2 sm:px-5 sm:py-5 lg:px-7">
+        <header ref={headerRef} className="relative z-50 mb-4 sm:mb-5">
+          <div
+            className="flex min-h-[4.35rem] items-center gap-3 rounded-[1.6rem] border px-3 py-2 shadow-2xl backdrop-blur-2xl sm:px-4"
+            style={{
+              background: "var(--header-shell)",
+              borderColor: "var(--header-border)",
+              color: "var(--header-text)",
+            }}
+          >
+            <Link
+              href="#hero"
+              className="inline-flex min-w-0 shrink-0 items-center gap-3 rounded-full px-1.5 py-1.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <span
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-lg"
+                style={{ background: "var(--hero-primary)" }}
+              >
+                A
+              </span>
+
+              <span className="min-w-0">
+                <span className="block text-sm font-black leading-none tracking-tight sm:text-base">
+                  Addressor
+                </span>
+                <span
+                  className="mt-1 hidden text-[0.62rem] font-black uppercase tracking-[0.16em] sm:block"
+                  style={{ color: "var(--header-muted)" }}
+                >
+                  Rwanda discovery
+                </span>
+              </span>
+            </Link>
+
+            <nav className="hidden flex-1 justify-center lg:flex">
+              <div
+                className="inline-flex items-center gap-1 rounded-full px-2 py-2"
+                style={{ background: "var(--header-menu)" }}
+              >
+                {navItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="rounded-full px-5 py-2.5 text-sm font-black transition hover:bg-[#1ca8cb]/12 hover:text-[#0b7f99]"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <Link
+                href="/business-onboarding"
+                className="hidden min-h-11 min-w-[10rem] items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-black text-white shadow-2xl transition hover:scale-[1.02] lg:inline-flex lg:min-h-12 lg:min-w-[11rem] lg:px-7"
+                style={{ background: "var(--header-action)" }}
+              >
+                <span className="min-[420px]:hidden">List place</span>
+                <span className="hidden min-[420px]:inline">List your place</span>
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-white/18 text-white lg:h-7 lg:w-7">
+                  ↗
+                </span>
+              </Link>
+
+              <HeroThemeToggle />
+
+              <button
+                type="button"
+                onClick={() => setMenuOpen((current) => !current)}
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={menuOpen}
+                className="grid h-10 w-10 place-items-center rounded-full border bg-white text-[#292929] shadow-xl transition hover:scale-105 active:scale-95 lg:hidden"
+                style={{ borderColor: "var(--header-border)" }}
+              >
+                <MenuIcon open={menuOpen} />
+              </button>
+            </div>
+          </div>
+
+          <div
+            className={[
+              "absolute left-0 right-0 top-[4.85rem] z-30 overflow-hidden rounded-[1.5rem] border p-4 shadow-2xl backdrop-blur-2xl transition-all duration-300 lg:hidden",
+              menuOpen
+                ? "translate-y-0 opacity-100"
+                : "pointer-events-none -translate-y-3 opacity-0",
+            ].join(" ")}
+            style={{
+              background: "var(--header-shell)",
+              borderColor: "var(--header-border)",
+              color: "var(--header-text)",
+            }}
+          >
+            <div className="px-1 pb-5">
+              <p
+                className="text-[0.65rem] font-black uppercase tracking-[0.18em]"
+                style={{ color: "var(--header-muted)" }}
+              >
+                Menu
+              </p>
+              <p className="mt-1 text-sm font-black">
+                Choose what you need.
+              </p>
+            </div>
+
+            <div className="grid gap-2 min-[430px]:grid-cols-2">
+              <Link
+                href="#featured-places"
+                onClick={() => setMenuOpen(false)}
+                className="inline-flex min-h-[3.45rem] items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black text-white shadow-xl transition hover:scale-[1.01]"
+                style={{ background: "var(--header-action)" }}
+              >
+                Find places
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-white/18 text-white">
+                  →
+                </span>
+              </Link>
+
+              <Link
+                href="/business-onboarding"
+                onClick={() => setMenuOpen(false)}
+                className="inline-flex min-h-[3.45rem] items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-black transition hover:scale-[1.01]"
+                style={{
+                  borderColor: "var(--header-border)",
+                  color: "var(--header-text)",
+                }}
+              >
+                List your place
+              </Link>
+            </div>
+
+            <div
+              className="my-4 h-px"
+              style={{ background: "var(--header-border)" }}
+            />
+
+            <div className="grid gap-2 min-[430px]:grid-cols-2">
+              {[
+                { label: "Restaurants", href: "#places" },
+                { label: "Stays", href: "#places" },
+                { label: "Events", href: "#places" },
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="group flex min-h-[3.25rem] items-center justify-between rounded-[1.05rem] border px-4 py-3 text-sm font-black transition hover:scale-[1.01]"
+                  style={{
+                    background: "var(--header-soft)",
+                    borderColor: "var(--header-border)",
+                    color: "var(--header-text)",
+                  }}
+                >
+                  <span>{item.label}</span>
+                  <span
+                    className="text-base transition group-hover:translate-x-0.5"
+                    style={{ color: "var(--header-muted)" }}
+                  >
+                    →
+                  </span>
+                </Link>
+              ))}
+
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="group flex min-h-[3.25rem] items-center justify-between rounded-[1.05rem] border px-4 py-3 text-sm font-black transition hover:scale-[1.01] min-[430px]:col-span-2"
+                style={{
+                  background: "transparent",
+                  borderColor: "var(--header-border)",
+                  color: "var(--header-text)",
+                }}
+              >
+                <span>Login</span>
+                <span
+                  className="rounded-full px-3 py-1 text-xs font-black"
+                  style={{
+                    background: "var(--header-soft)",
+                    color: "var(--header-muted)",
+                  }}
+                >
+                  Account
+                </span>
+              </Link>
+            </div>
+          </div>
+        </header>
         <div
           className="overflow-hidden rounded-[1.7rem] border p-1.5 shadow-2xl sm:rounded-[2.75rem] sm:p-2"
           style={{
@@ -279,115 +494,12 @@ export default function HeroSection() {
               <div className="hero-photo absolute inset-0" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_40%,rgba(28,168,203,.2),transparent_18rem),linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.34))]" />
 
-              <div className="top-right-notch hidden lg:block" />
+              <div className="top-right-notch hidden" />
               <div className="bottom-left-notch hidden lg:block" />
 
-              <header className="absolute left-3 right-3 top-3 z-40 flex items-start justify-between gap-3 sm:left-6 sm:right-6 sm:top-6">
-                <div className="flex min-w-0 items-center gap-2">
-                  <Link
-                    href="#hero"
-                    className="flex min-w-0 items-center gap-2 rounded-full border bg-white/14 px-3 py-2 text-sm font-black text-white backdrop-blur-xl"
-                    style={{ borderColor: "rgba(255,255,255,.24)" }}
-                  >
-                    <span
-                      className="grid h-7 w-7 shrink-0 place-items-center rounded-full"
-                      style={{ background: "var(--hero-primary)" }}
-                    >
-                      A
-                    </span>
-                    <span className="hidden min-[360px]:inline">Addressor</span>
-                  </Link>
 
-                  <div
-                    className="hidden items-center gap-1 rounded-full border p-1 shadow-2xl backdrop-blur-2xl lg:flex"
-                    style={{
-                      background: "rgba(255,255,255,.18)",
-                      borderColor: "rgba(255,255,255,.28)",
-                    }}
-                  >
-                    {navItems.map((item, index) => (
-                      <Link
-                        key={item}
-                        href="#places"
-                        className="rounded-full border px-4 py-2 text-sm font-black text-white"
-                        style={{
-                          background:
-                            index === 0
-                              ? "rgba(16,16,16,.44)"
-                              : "rgba(255,255,255,.08)",
-                          borderColor: "rgba(255,255,255,.22)",
-                        }}
-                      >
-                        {item}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
 
-                <div className="relative z-40 ml-auto flex items-center gap-2">
-                  <Link
-                    href="/login"
-                    className="hidden rounded-full border bg-white/12 px-4 py-2.5 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/18 lg:inline-flex"
-                    style={{ borderColor: "rgba(255,255,255,.24)" }}
-                  >
-                    Login
-                  </Link>
-
-                  <Link
-                    href="/business-onboarding"
-                    className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-sm font-black text-[#292929] shadow-2xl lg:inline-flex"
-                  >
-                    Add your business
-                    <span
-                      className="grid h-7 w-7 place-items-center rounded-full text-white"
-                      style={{ background: "var(--hero-primary)" }}
-                    >
-                      ↗
-                    </span>
-                  </Link>
-
-                  <HeroThemeToggle />
-
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen((current) => !current)}
-                    aria-label={menuOpen ? "Close menu" : "Open menu"}
-                    aria-expanded={menuOpen}
-                    className="grid h-10 w-10 place-items-center rounded-full border bg-white/90 text-[#292929] shadow-xl backdrop-blur-xl transition hover:scale-105 active:scale-95 lg:hidden"
-                  >
-                    <MenuIcon open={menuOpen} />
-                  </button>
-                </div>
-
-                <div
-                  className={[
-                    "absolute left-0 right-0 top-[3.35rem] z-30 overflow-hidden rounded-[1.5rem] border bg-white/95 p-2 text-[#292929] shadow-2xl backdrop-blur-2xl transition-all duration-300 lg:hidden",
-                    menuOpen
-                      ? "translate-y-0 opacity-100"
-                      : "pointer-events-none -translate-y-3 opacity-0",
-                  ].join(" ")}
-                >
-                  {[
-                    ["Discover", "#hero"],
-                    ["Explore places", "#places"],
-                    ["Book or save", "#book"],
-                    ["Login", "/login"],
-                    ["Add your business", "/business-onboarding"],
-                  ].map(([item, href]) => (
-                    <Link
-                      key={item}
-                      href={href}
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-black transition hover:bg-[#1ca8cb]/10"
-                    >
-                      {item}
-                      <span className="text-[#1ca8cb]">↗</span>
-                    </Link>
-                  ))}
-                </div>
-              </header>
-
-              <div className="hero-inner relative z-10 hidden gap-6 p-4 pb-28 pt-24 text-white sm:p-7 sm:pb-28 sm:pt-28 lg:grid lg:grid-cols-[minmax(0,0.98fr)_30rem] lg:items-center lg:p-10 lg:pb-28 lg:pt-32 xl:grid-cols-[minmax(0,1fr)_34rem]">
+              <div className="hero-inner relative z-10 hidden gap-6 p-4 pb-28 pt-16 text-white sm:p-7 sm:pb-28 sm:pt-20 lg:grid lg:grid-cols-[minmax(0,0.98fr)_30rem] lg:items-center lg:p-10 lg:pb-28 lg:pt-32 xl:grid-cols-[minmax(0,1fr)_34rem]">
                 <div className="max-w-5xl">
                   <div className="flex flex-wrap gap-2">
                     {chips.map((item) => (
@@ -430,7 +542,7 @@ export default function HeroSection() {
                       href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/28 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:bg-white/16"
                     >
-                      Add your business
+                      List your place
                     </Link>
                   </div>
                 </div>
@@ -501,7 +613,7 @@ export default function HeroSection() {
                 </div>
               </div>
 
-              <div className="hero-inner relative z-10 flex flex-col justify-center px-5 pb-24 pt-24 text-white lg:hidden">
+              <div className="hero-inner relative z-10 flex flex-col justify-center px-5 pb-24 pt-16 text-white lg:hidden">
                 <div className="max-w-2xl">
                   <div className="flex flex-wrap gap-2">
                     {chips.map((item) => (
@@ -541,7 +653,7 @@ export default function HeroSection() {
                       href="/business-onboarding"
                       className="inline-flex items-center justify-center rounded-full border border-white/24 bg-white/10 px-5 py-4 text-sm font-black text-white backdrop-blur-xl"
                     >
-                      Add your business
+                      List your place
                     </Link>
                   </div>
 

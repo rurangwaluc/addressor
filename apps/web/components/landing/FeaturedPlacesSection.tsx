@@ -116,7 +116,7 @@ function EmptyFeaturedPlaces() {
             href="/business-onboarding"
             className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-[#1ca8cb] px-6 py-4 text-sm font-black text-white transition hover:scale-[1.02]"
           >
-            Add your business
+            List your place
           </Link>
 
           <Link
@@ -437,7 +437,6 @@ export default function FeaturedPlacesSection() {
                   <FeaturedPlaceCard
                     key={place.id}
                     place={place}
-                    wide={places.length <= 2}
                   />
                 ))}
               </div>
@@ -465,7 +464,7 @@ export default function FeaturedPlacesSection() {
                     color: "var(--places-text)",
                   }}
                 >
-                  Add your business
+                  List your place
                 </Link>
               </div>
             </>

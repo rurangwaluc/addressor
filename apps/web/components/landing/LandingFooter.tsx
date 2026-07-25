@@ -135,7 +135,7 @@ export default function LandingFooter() {
                     color: "var(--footer-text)",
                   }}
                 >
-                  Add your business
+                  List your place
                 </Link>
               </div>
 
@@ -224,7 +224,7 @@ export default function LandingFooter() {
             <p>© {new Date().getFullYear()} Addressor. Built for Rwanda discovery.</p>
 
             <Link href="/business-onboarding" className="transition hover:text-[#1ca8cb]">
-              Add your business →
+              List your place →
             </Link>
           </div>
         </div>
