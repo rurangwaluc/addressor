@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api";
 
 type FeaturedBusiness = {
@@ -303,8 +303,30 @@ function FeaturedPlaceCard({ place, wide = false }: { place: FeaturedBusiness; w
 }
 
 export default function FeaturedPlacesSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [sectionVisible, setSectionVisible] = useState(false);
   const [places, setPlaces] = useState<FeaturedBusiness[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSectionVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.18 },
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -345,7 +367,14 @@ export default function FeaturedPlacesSection() {
         : "mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3";
 
   return (
-    <section id="featured-places" className="featured-places relative overflow-hidden">
+    <section
+        ref={sectionRef}
+        id="featured-places"
+        className={[
+          "featured-places relative overflow-hidden transition-all duration-[1200ms] ease-out",
+          sectionVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+        ].join(" ")}
+      >
       <style>{`
         .featured-places {
           --places-card: rgba(255,255,255,.92);
@@ -442,7 +471,7 @@ export default function FeaturedPlacesSection() {
               </div>
 
               <div
-                className="mt-5 flex flex-col gap-3 rounded-[1.4rem] border p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="mt-5 flex flex-col gap-4 rounded-[1.4rem] border p-4 sm:flex-row sm:items-center sm:justify-between"
                 style={{
                   background: "var(--places-soft)",
                   borderColor: "var(--places-border)",
@@ -452,20 +481,29 @@ export default function FeaturedPlacesSection() {
                   className="max-w-2xl text-sm font-semibold leading-6"
                   style={{ color: "var(--places-muted)" }}
                 >
-                  These cards come from real business profiles and help visitors
-                  take action faster.
+                  Find places you can call, message, or visit without searching again.
                 </p>
 
-                <Link
-                  href="/business-onboarding"
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-full border px-6 py-4 text-sm font-black transition hover:scale-[1.02]"
-                  style={{
-                    borderColor: "var(--places-border)",
-                    color: "var(--places-text)",
-                  }}
-                >
-                  List your place
-                </Link>
+                <div className="flex flex-col gap-2 min-[430px]:flex-row">
+                  <Link
+                    href="/places"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-full px-6 py-4 text-sm font-black text-white shadow-xl transition hover:scale-[1.02]"
+                    style={{ background: "var(--places-primary)" }}
+                  >
+                    See more places
+                  </Link>
+
+                  <Link
+                    href="/business-onboarding"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-full border px-6 py-4 text-sm font-black transition hover:scale-[1.02]"
+                    style={{
+                      borderColor: "var(--places-border)",
+                      color: "var(--places-text)",
+                    }}
+                  >
+                    List your place
+                  </Link>
+                </div>
               </div>
             </>
           )}

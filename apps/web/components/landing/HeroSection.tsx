@@ -348,6 +348,17 @@ export default function HeroSection() {
 
             <div className="ml-auto flex shrink-0 items-center gap-2">
               <Link
+                href="/login"
+                className="hidden min-h-11 items-center justify-center whitespace-nowrap rounded-full border px-5 text-sm font-black transition hover:scale-[1.01] lg:inline-flex"
+                style={{
+                  borderColor: "var(--header-border)",
+                  color: "var(--header-text)",
+                }}
+              >
+                Login
+              </Link>
+
+              <Link
                 href="/business-onboarding"
                 className="hidden min-h-11 min-w-[10rem] items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-black text-white shadow-2xl transition hover:scale-[1.02] lg:inline-flex lg:min-h-12 lg:min-w-[11rem] lg:px-7"
                 style={{ background: "var(--header-action)" }}
