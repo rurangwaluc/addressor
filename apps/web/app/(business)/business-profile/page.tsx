@@ -14,6 +14,11 @@ import {
   saveAccessContext,
 } from "@/lib/authSession";
 import type { AccessContext } from "@/lib/authRedirect";
+import {
+  chooseActiveBusiness,
+  getBusinessId,
+  saveActiveBusinessId,
+} from "@/lib/businessSession";
 
 type BusinessProfile = {
   id: string;
@@ -205,6 +210,7 @@ function TextArea({
 
 export default function BusinessProfilePage() {
   const [access, setAccess] = useState<AccessContext | null>(null);
+  const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [business, setBusiness] = useState<BusinessProfile | null>(null);
   const [form, setForm] = useState<ProfileForm>(() => emptyForm());
   const [loading, setLoading] = useState(true);
@@ -227,12 +233,13 @@ export default function BusinessProfilePage() {
           method: "GET",
         });
 
-        const firstBusiness = response.data.businesses[0] ?? null;
+        const selectedBusiness = chooseActiveBusiness(response.data.businesses);
 
         if (!cancelled) {
-          setBusiness(firstBusiness);
-          if (firstBusiness) {
-            setForm(formFromBusiness(firstBusiness));
+          setBusinesses(response.data.businesses);
+          setBusiness(selectedBusiness);
+          if (selectedBusiness) {
+            setForm(formFromBusiness(selectedBusiness));
           }
         }
 
@@ -276,6 +283,20 @@ export default function BusinessProfilePage() {
     }));
   }
 
+  function switchBusiness(businessId: string) {
+    const selectedBusiness = businesses.find(
+      (item) => getBusinessId(item) === businessId,
+    );
+
+    if (!selectedBusiness) return;
+
+    saveActiveBusinessId(businessId);
+    setBusiness(selectedBusiness);
+    setForm(formFromBusiness(selectedBusiness));
+    setNotice("");
+    setError("");
+  }
+
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -297,11 +318,18 @@ export default function BusinessProfilePage() {
         },
       );
 
-      setBusiness({
+      const updatedBusiness = {
         ...response.data.business,
         role: business.role,
         teamStatus: business.teamStatus,
-      });
+      };
+
+      setBusiness(updatedBusiness);
+      setBusinesses((current) =>
+        current.map((item) =>
+          item.id === updatedBusiness.id ? updatedBusiness : item,
+        ),
+      );
       setForm(formFromBusiness(response.data.business));
       saveAccessContext(response.data.access);
       setAccess(response.data.access);
@@ -353,7 +381,40 @@ export default function BusinessProfilePage() {
               </span>
             </Link>
 
-            <div className="flex items-center justify-between gap-2 sm:justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
+              {businesses.length > 1 ? (
+                <label className="min-w-0">
+                  <span className="sr-only">Switch business</span>
+                  <select
+                    value={business ? getBusinessId(business) : ""}
+                    onChange={(event) => switchBusiness(event.target.value)}
+                    className="max-w-[15rem] rounded-full border px-4 py-3 text-sm font-black outline-none"
+                    style={{
+                      background: "var(--surface-strong)",
+                      borderColor: "var(--border)",
+                      color: "var(--text)",
+                    }}
+                  >
+                    {businesses.map((item) => (
+                      <option key={getBusinessId(item)} value={getBusinessId(item)}>
+                        {item.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+
+              <Link
+                href="/businesses"
+                className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
+                style={{
+                  borderColor: "var(--border)",
+                  color: "var(--text)",
+                }}
+              >
+                Switch business
+              </Link>
+
               <Link
                 href="/business-dashboard"
                 className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
@@ -405,7 +466,7 @@ export default function BusinessProfilePage() {
                 <button
                   type="submit"
                   disabled={saving || loading}
-                  className="rounded-full px-5 py-3 whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-full px-5 py-3 whitespace-nowrap text-sm font-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
                     background: "var(--accent)",
                     color: "var(--accent-contrast)",

@@ -12,6 +12,11 @@ import {
   getStoredAccessContext,
   getStoredAccessToken,
 } from "@/lib/authSession";
+import {
+  chooseActiveBusiness,
+  getBusinessId,
+  saveActiveBusinessId,
+} from "@/lib/businessSession";
 
 type BusinessSummary = NonNullable<AccessContext["activeBusiness"]>;
 
@@ -110,11 +115,28 @@ export default function BusinessDashboardPage() {
     };
   }, []);
 
-  const business = access?.activeBusiness ?? access?.businesses?.[0] ?? null;
+  const business = chooseActiveBusiness(access?.businesses);
   const setupItems = useMemo(() => getSetupItems(business), [business]);
   const completedCount = setupItems.filter((item) => item.done).length;
   const setupPercent = Math.round((completedCount / setupItems.length) * 100);
   const needsAttention = setupItems.filter((item) => !item.done);
+
+  function switchBusiness(businessId: string) {
+    if (!access) return;
+
+    const nextBusiness = access.businesses.find(
+      (item) => getBusinessId(item) === businessId,
+    );
+
+    if (!nextBusiness) return;
+
+    saveActiveBusinessId(businessId);
+
+    setAccess({
+      ...access,
+      activeBusiness: nextBusiness,
+    });
+  }
 
   return (
     <RequireAccess mode="business">
@@ -159,7 +181,40 @@ export default function BusinessDashboardPage() {
                 </span>
               </Link>
 
-              <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
+                {access?.businesses && access.businesses.length > 1 ? (
+                  <label className="min-w-0">
+                    <span className="sr-only">Switch business</span>
+                    <select
+                      value={business ? getBusinessId(business) : ""}
+                      onChange={(event) => switchBusiness(event.target.value)}
+                      className="max-w-[15rem] rounded-full border px-4 py-3 text-sm font-black outline-none"
+                      style={{
+                        background: "var(--surface-strong)",
+                        borderColor: "var(--border)",
+                        color: "var(--text)",
+                      }}
+                    >
+                      {access.businesses.map((item) => (
+                        <option key={getBusinessId(item)} value={getBusinessId(item)}>
+                          {item.businessName}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+
+                <Link
+                  href="/businesses"
+                  className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
+                  style={{
+                    borderColor: "var(--border)",
+                    color: "var(--text)",
+                  }}
+                >
+                  Switch business
+                </Link>
+
                 <ThemeToggle />
                 <LogoutButton />
               </div>
@@ -342,7 +397,7 @@ export default function BusinessDashboardPage() {
 
                     <Link
                       href="/"
-                      className="inline-flex items-center justify-center rounded-full border px-5 py-3 whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
+                      className="inline-flex items-center justify-center rounded-full border px-5 py-3 whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
                       style={{
                         borderColor: "var(--border)",
                         color: "var(--text)",
@@ -411,7 +466,7 @@ export default function BusinessDashboardPage() {
                       <Link
                         key={label}
                         href={href}
-                        className="rounded-[1.15rem] border p-3 whitespace-nowrap whitespace-nowrap text-sm font-black transition hover:scale-[1.01] sm:rounded-[1.25rem] sm:p-4"
+                        className="rounded-[1.15rem] border p-3 whitespace-nowrap text-sm font-black transition hover:scale-[1.01] sm:rounded-[1.25rem] sm:p-4"
                         style={{
                           background: "var(--surface-strong)",
                           borderColor: "var(--border)",
