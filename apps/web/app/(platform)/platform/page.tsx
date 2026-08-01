@@ -7,7 +7,6 @@ export default function PlatformPage() {
       <main
         className="min-h-screen px-5 py-8"
         style={{
-          background: "var(--background)",
           color: "var(--text)",
         }}
       >

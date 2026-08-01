@@ -32,23 +32,7 @@ export default function AuthShell({
   const visiblePanelItems = panelItems.slice(0, 3);
 
   return (
-    <main
-      className="relative min-h-dvh overflow-x-hidden px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 lg:px-8"
-      style={{ background: "var(--auth-page-bg)" }}
-    >
-      <div className="imigongo-pattern pointer-events-none absolute inset-0 opacity-25" />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: "var(--auth-page-overlay)" }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 16% 10%, rgba(255,255,255,0.045), transparent 28%), radial-gradient(circle at 88% 92%, rgba(0,0,0,0.18), transparent 34%)",
-        }}
-      />
-
+      <main className="relative min-h-dvh overflow-x-hidden px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 lg:px-8">
       <div className="relative mx-auto flex min-h-[calc(100dvh-1.5rem)] w-full max-w-[73rem] flex-col">
         <header className="flex items-center justify-between gap-3 py-2.5 sm:py-4">
           <Link

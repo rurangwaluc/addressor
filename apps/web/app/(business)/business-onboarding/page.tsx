@@ -277,7 +277,6 @@ export default function BusinessOnboardingPage() {
       <main
         className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8"
         style={{
-          background: "var(--background)",
           color: "var(--text)",
         }}
       >

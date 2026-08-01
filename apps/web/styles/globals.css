@@ -74,21 +74,24 @@ body {
   color: var(--text);
   background-color: var(--bg);
   background-image:
-    linear-gradient(rgba(246, 246, 246, 0.46), rgba(246, 246, 246, 0.46)),
-    repeating-linear-gradient(
-      135deg,
-      rgba(16, 16, 16, 0.22) 0 16px,
-      transparent 16px 34px,
-      rgba(16, 16, 16, 0.22) 34px 50px,
-      transparent 50px 86px
-    ),
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 18px,
-      rgba(16, 16, 16, 0.18) 18px 34px,
-      transparent 34px 70px
-    );
-  background-size: auto, 120px 120px, 120px 120px;
+    linear-gradient(rgba(246, 246, 246, 0.58), rgba(246, 246, 246, 0.58)),
+    linear-gradient(135deg, rgba(16, 16, 16, 0.12) 18px, transparent 18px),
+    linear-gradient(225deg, rgba(16, 16, 16, 0.12) 18px, transparent 18px),
+    linear-gradient(45deg, rgba(16, 16, 16, 0.08) 18px, transparent 18px),
+    linear-gradient(315deg, rgba(16, 16, 16, 0.08) 18px, transparent 18px);
+  background-position:
+    0 0,
+    34px 0,
+    34px 0,
+    0 0,
+    0 0;
+  background-size:
+    auto,
+    68px 68px,
+    68px 68px,
+    68px 68px,
+    68px 68px;
+  background-repeat: repeat;
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
@@ -98,21 +101,24 @@ body {
 .dark body.addressor-body {
   background-color: var(--bg);
   background-image:
-    linear-gradient(rgba(41, 41, 41, 0.46), rgba(41, 41, 41, 0.46)),
-    repeating-linear-gradient(
-      135deg,
-      rgba(246, 246, 246, 0.26) 0 16px,
-      transparent 16px 34px,
-      rgba(246, 246, 246, 0.26) 34px 50px,
-      transparent 50px 86px
-    ),
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 18px,
-      rgba(246, 246, 246, 0.22) 18px 34px,
-      transparent 34px 70px
-    );
-  background-size: auto, 120px 120px, 120px 120px;
+    linear-gradient(rgba(41, 41, 41, 0.58), rgba(41, 41, 41, 0.58)),
+    linear-gradient(135deg, rgba(246, 246, 246, 0.13) 18px, transparent 18px),
+    linear-gradient(225deg, rgba(246, 246, 246, 0.13) 18px, transparent 18px),
+    linear-gradient(45deg, rgba(246, 246, 246, 0.09) 18px, transparent 18px),
+    linear-gradient(315deg, rgba(246, 246, 246, 0.09) 18px, transparent 18px);
+  background-position:
+    0 0,
+    34px 0,
+    34px 0,
+    0 0,
+    0 0;
+  background-size:
+    auto,
+    68px 68px,
+    68px 68px,
+    68px 68px,
+    68px 68px;
+  background-repeat: repeat;
   background-attachment: fixed;
 }
 

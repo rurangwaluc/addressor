@@ -68,7 +68,7 @@ function DashboardLoading() {
   return (
     <main
       className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-      style={{ background: "var(--background)", color: "var(--text)" }}
+      style={{ color: "var(--text)" }}
     >
       <section className="mx-auto w-full max-w-7xl">
         <div
@@ -145,10 +145,9 @@ export default function BusinessDashboardPage() {
       ) : (
         <main
           className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-          style={{ background: "var(--background)", color: "var(--text)" }}
+          style={{ color: "var(--text)" }}
         >
-          <div className="imigongo-pattern fixed inset-0 opacity-10" />
-
+          
           <section className="relative mx-auto w-full max-w-7xl">
             <nav
               className="flex flex-col gap-3 rounded-[1.5rem] border p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
