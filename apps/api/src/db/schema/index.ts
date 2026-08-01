@@ -8,6 +8,15 @@ import { users, userProfiles } from "./users.schema.js";
 import { roles, userRoles } from "./roles.schema.js";
 import { businesses, businessTeamMembers } from "./businesses.schema.js";
 import { businessBranches } from "./branches.schema.js";
+import {
+  businessBookingRequests,
+  businessMenuCategories,
+  businessMenuItems,
+  businessProfileViews,
+  businessReviewComments,
+  businessReviews,
+  businessUpdateSubscribers,
+} from "./business-account.schema.js";
 import { platformSettings } from "./platform.schema.js";
 import { auditLogs } from "./audit.schema.js";
 
@@ -23,6 +32,13 @@ export {
   businesses,
   businessTeamMembers,
   businessBranches,
+  businessProfileViews,
+  businessReviews,
+  businessReviewComments,
+  businessBookingRequests,
+  businessMenuCategories,
+  businessMenuItems,
+  businessUpdateSubscribers,
   platformSettings,
   auditLogs,
 };
@@ -39,6 +55,13 @@ export type Schema = {
   businesses: typeof businesses;
   businessTeamMembers: typeof businessTeamMembers;
   businessBranches: typeof businessBranches;
+  businessProfileViews: typeof businessProfileViews;
+  businessReviews: typeof businessReviews;
+  businessReviewComments: typeof businessReviewComments;
+  businessBookingRequests: typeof businessBookingRequests;
+  businessMenuCategories: typeof businessMenuCategories;
+  businessMenuItems: typeof businessMenuItems;
+  businessUpdateSubscribers: typeof businessUpdateSubscribers;
   platformSettings: typeof platformSettings;
   auditLogs: typeof auditLogs;
 };

@@ -1,5 +1,13 @@
-import { and, desc, eq, isNotNull, or } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, or } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
+import {
+  businessBookingRequests,
+  businessMenuItems,
+  businessProfileViews,
+  businessReviewComments,
+  businessReviews,
+  businessUpdateSubscribers,
+} from "../../db/schema/business-account.schema.js";
 import {
   businesses,
   businessTeamMembers,
@@ -10,6 +18,7 @@ import type {
 } from "./businesses.validators.js";
 import type {
   BusinessOnboardingResponse,
+  BusinessOwnerSummaryResponse,
   MyBusinessesResponse,
 } from "./businesses.types.js";
 
@@ -101,6 +110,28 @@ async function assertCanEditBusiness(userId: string, businessId: string) {
   ) {
     throw new Error("Only owners and managers can edit this business");
   }
+}
+
+async function countBusinessRows(table: any, businessId: string) {
+  const rows = await db
+    .select({ value: count() })
+    .from(table)
+    .where(eq(table.businessId, businessId));
+
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function countBusinessRowsByStatus(
+  table: any,
+  businessId: string,
+  status: string,
+) {
+  const rows = await db
+    .select({ value: count() })
+    .from(table)
+    .where(and(eq(table.businessId, businessId), eq(table.status, status)));
+
+  return Number(rows[0]?.value ?? 0);
 }
 
 export const businessesService = {
@@ -196,6 +227,96 @@ export const businessesService = {
 
     return {
       businesses: rows.map(mapBusiness),
+    };
+  },
+
+  async getOwnerSummary(
+    userId: string,
+    businessId: string,
+  ): Promise<BusinessOwnerSummaryResponse> {
+    await assertCanEditBusiness(userId, businessId);
+
+    const businessRows = await db
+      .select()
+      .from(businesses)
+      .where(eq(businesses.id, businessId))
+      .limit(1);
+
+    const business = businessRows[0];
+
+    if (!business) {
+      throw new Error("Business was not found");
+    }
+
+    const [
+      profileViews,
+      newBookings,
+      reviews,
+      comments,
+      menuItems,
+      subscribers,
+    ] = await Promise.all([
+      countBusinessRows(businessProfileViews, businessId),
+      countBusinessRowsByStatus(businessBookingRequests, businessId, "new"),
+      countBusinessRows(businessReviews, businessId),
+      countBusinessRows(businessReviewComments, businessId),
+      countBusinessRows(businessMenuItems, businessId),
+      countBusinessRowsByStatus(businessUpdateSubscribers, businessId, "active"),
+    ]);
+
+    const attention: BusinessOwnerSummaryResponse["attention"] = [];
+
+    if (!business.coverImageUrl) {
+      attention.push({
+        title: "Add a cover photo",
+        text: "A clear photo helps visitors understand your place faster.",
+        action: "Add photos",
+        href: "/business-photos",
+        priority: "high",
+      });
+    }
+
+    if (!business.phone && !business.whatsappNumber) {
+      attention.push({
+        title: "Add contact details",
+        text: "People need one clear way to call or message your business.",
+        action: "Edit profile",
+        href: "/business-profile",
+        priority: "high",
+      });
+    }
+
+    if (menuItems === 0) {
+      attention.push({
+        title: "Add your menu",
+        text: "Show what people can order, book, or ask about before they contact you.",
+        action: "Add menu",
+        href: "/business-menu",
+        priority: "medium",
+      });
+    }
+
+    if (newBookings > 0) {
+      attention.push({
+        title: "Check new booking requests",
+        text: "Respond while customers are still ready to choose.",
+        action: "View bookings",
+        href: "/business-bookings",
+        priority: "high",
+      });
+    }
+
+    return {
+      business: mapBusiness(business),
+      overview: {
+        profileViews,
+        newBookings,
+        reviews,
+        comments,
+        menuItems,
+        subscribers,
+      },
+      attention,
     };
   },
 

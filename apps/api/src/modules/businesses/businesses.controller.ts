@@ -36,6 +36,24 @@ export async function myBusinessesHandler(
   return reply.send(okResponse(result));
 }
 
+export async function businessOwnerSummaryHandler(
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  if (!req.user) throw new Error("Invalid token");
+
+  const params = req.params as { businessId?: string };
+  const businessId = params.businessId;
+
+  if (!businessId) {
+    throw new Error("Business id is required");
+  }
+
+  const result = await businessesService.getOwnerSummary(req.user.id, businessId);
+
+  return reply.send(okResponse(result));
+}
+
 export async function updateBusinessProfileHandler(
   req: FastifyRequest,
   reply: FastifyReply,
@@ -64,7 +82,6 @@ export async function updateBusinessProfileHandler(
     }),
   );
 }
-
 
 export async function featuredBusinessesHandler(
   req: FastifyRequest,

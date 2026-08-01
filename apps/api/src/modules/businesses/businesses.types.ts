@@ -31,3 +31,23 @@ export type MyBusinessesResponse = {
     }
   >;
 };
+
+export type BusinessOwnerSummaryResponse = {
+  business: BusinessOnboardingResponse["business"];
+  overview: {
+    profileViews: number;
+    newBookings: number;
+    reviews: number;
+    comments: number;
+    menuItems: number;
+    subscribers: number;
+  };
+  attention: Array<{
+    title: string;
+    text: string;
+    action: string;
+    href: string;
+    priority: "high" | "medium" | "low";
+  }>;
+};
+

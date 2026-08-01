@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { requireAuth } from "../../app/middleware/requireAuth.js";
 import { requireVerifiedUser } from "../../app/middleware/requireRole.js";
 import {
+  businessOwnerSummaryHandler,
   completeBusinessOnboardingHandler,
   featuredBusinessesHandler,
   myBusinessesHandler,
@@ -25,6 +26,14 @@ export default async function businessesRoutes(fastify: FastifyInstance) {
       preHandler: [requireAuth],
     },
     myBusinessesHandler,
+  );
+
+  fastify.get(
+    "/:businessId/owner-summary",
+    {
+      preHandler: [requireAuth, requireVerifiedUser()],
+    },
+    businessOwnerSummaryHandler,
   );
 
   fastify.patch(
