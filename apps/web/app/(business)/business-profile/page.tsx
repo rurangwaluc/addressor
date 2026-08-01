@@ -429,9 +429,11 @@ export default function BusinessProfilePage() {
             </div>
           </nav>
 
-          <BusinessNav />
+          <div className="mt-4 grid gap-5 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-start">
+            <BusinessNav />
 
-          <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_0.72fr]">
+            <div className="min-w-0">
+              <div className="grid gap-5 xl:grid-cols-[1fr_0.72fr]">
             <form
               onSubmit={saveProfile}
               className="rounded-[2rem] border p-5 shadow-2xl sm:p-7"
@@ -800,6 +802,8 @@ export default function BusinessProfilePage() {
                 </div>
               </section>
             </aside>
+              </div>
+            </div>
           </div>
         </section>
       </main>
