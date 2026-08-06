@@ -207,6 +207,7 @@ export default function RequireAccess({
         }
 
         setState({ status: "allowed", access: cachedAccess });
+        return;
       }
 
       try {
