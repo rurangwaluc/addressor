@@ -2,21 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
-import RequireAccess from "@/components/auth/RequireAccess";
-import LogoutButton from "@/components/auth/LogoutButton";
-import BusinessNav from "@/components/business/BusinessNav";
 import { apiRequest } from "@/lib/api";
-import {
-  getStoredAccessContext,
-  saveAccessContext,
-} from "@/lib/authSession";
+import { saveAccessContext } from "@/lib/authSession";
 import type { AccessContext } from "@/lib/authRedirect";
-import {
-  chooseActiveBusiness,
-  getBusinessId,
-  saveActiveBusinessId,
-} from "@/lib/businessSession";
+import { chooseActiveBusiness } from "@/lib/businessSession";
 
 type BusinessProfile = {
   id: string;
@@ -207,8 +196,6 @@ function TextArea({
 }
 
 export default function BusinessProfilePage() {
-  const [access, setAccess] = useState<AccessContext | null>(null);
-  const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
   const [business, setBusiness] = useState<BusinessProfile | null>(null);
   const [form, setForm] = useState<ProfileForm>(() => emptyForm());
   const [loading, setLoading] = useState(true);
@@ -220,12 +207,6 @@ export default function BusinessProfilePage() {
     let cancelled = false;
 
     async function loadProfile() {
-      const cachedAccess = getStoredAccessContext();
-
-      if (cachedAccess && !cancelled) {
-        setAccess(cachedAccess);
-      }
-
       try {
         const response = await apiRequest<MyBusinessesResponse>("/businesses/my", {
           method: "GET",
@@ -234,7 +215,6 @@ export default function BusinessProfilePage() {
         const selectedBusiness = chooseActiveBusiness(response.data.businesses);
 
         if (!cancelled) {
-          setBusinesses(response.data.businesses);
           setBusiness(selectedBusiness);
           if (selectedBusiness) {
             setForm(formFromBusiness(selectedBusiness));
@@ -271,20 +251,6 @@ export default function BusinessProfilePage() {
     }));
   }
 
-  function switchBusiness(businessId: string) {
-    const selectedBusiness = businesses.find(
-      (item) => getBusinessId(item) === businessId,
-    );
-
-    if (!selectedBusiness) return;
-
-    saveActiveBusinessId(businessId);
-    setBusiness(selectedBusiness);
-    setForm(formFromBusiness(selectedBusiness));
-    setNotice("");
-    setError("");
-  }
-
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -313,14 +279,8 @@ export default function BusinessProfilePage() {
       };
 
       setBusiness(updatedBusiness);
-      setBusinesses((current) =>
-        current.map((item) =>
-          item.id === updatedBusiness.id ? updatedBusiness : item,
-        ),
-      );
       setForm(formFromBusiness(response.data.business));
       saveAccessContext(response.data.access);
-      setAccess(response.data.access);
       setNotice("Business profile saved.");
     } catch {
       setError("Profile was not saved. Check the fields and try again.");
@@ -330,97 +290,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <RequireAccess mode="business">
-      <main
-        className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-        style={{ color: "var(--text)" }}
-      >
-        
-        <section className="relative mx-auto w-full max-w-7xl">
-          <nav
-            className="flex flex-col gap-3 rounded-[1.5rem] border p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-            style={{
-              background: "var(--surface)",
-              borderColor: "var(--border)",
-            }}
-          >
-            <Link href="/business-dashboard" className="flex min-w-0 items-center gap-3">
-              <span
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full whitespace-nowrap text-sm font-black"
-                style={{
-                  background: "var(--accent)",
-                  color: "var(--accent-contrast)",
-                }}
-              >
-                A
-              </span>
-
-              <span className="min-w-0">
-                <span className="block truncate whitespace-nowrap text-sm font-black">
-                  Business profile
-                </span>
-                <span
-                  className="block truncate text-xs font-bold"
-                  style={{ color: "var(--muted)" }}
-                >
-                  Public business details
-                </span>
-              </span>
-            </Link>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
-              {businesses.length > 1 ? (
-                <label className="min-w-0">
-                  <span className="sr-only">Switch business</span>
-                  <select
-                    value={business ? getBusinessId(business) : ""}
-                    onChange={(event) => switchBusiness(event.target.value)}
-                    className="max-w-[15rem] rounded-full border px-4 py-3 text-sm font-black outline-none"
-                    style={{
-                      background: "var(--surface-strong)",
-                      borderColor: "var(--border)",
-                      color: "var(--text)",
-                    }}
-                  >
-                    {businesses.map((item) => (
-                      <option key={getBusinessId(item)} value={getBusinessId(item)}>
-                        {item.displayName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-
-              <Link
-                href="/businesses"
-                className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
-                style={{
-                  borderColor: "var(--border)",
-                  color: "var(--text)",
-                }}
-              >
-                Switch business
-              </Link>
-
-              <Link
-                href="/business-dashboard"
-                className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
-                style={{
-                  borderColor: "var(--border)",
-                  color: "var(--text)",
-                }}
-              >
-                Dashboard
-              </Link>
-              <ThemeToggle />
-              <LogoutButton />
-            </div>
-          </nav>
-
-          <div className="mt-4 grid gap-5 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-start">
-            <BusinessNav />
-
-            <div className="min-w-0">
+    <>
               <div className="grid gap-5 xl:grid-cols-[1fr_0.72fr]">
             <form
               onSubmit={saveProfile}
@@ -791,10 +661,6 @@ export default function BusinessProfilePage() {
               </section>
             </aside>
               </div>
-            </div>
-          </div>
-        </section>
-      </main>
-    </RequireAccess>
+    </>
   );
 }

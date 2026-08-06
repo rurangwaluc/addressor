@@ -2,18 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
-import RequireAccess from "@/components/auth/RequireAccess";
-import LogoutButton from "@/components/auth/LogoutButton";
-import BusinessNav from "@/components/business/BusinessNav";
 import type { AccessContext } from "@/lib/authRedirect";
 import { apiRequest } from "@/lib/api";
 import { getStoredAccessContext } from "@/lib/authSession";
-import {
-  chooseActiveBusiness,
-  getBusinessId,
-  saveActiveBusinessId,
-} from "@/lib/businessSession";
+import { chooseActiveBusiness, getBusinessId } from "@/lib/businessSession";
 
 type BusinessSummary = NonNullable<AccessContext["activeBusiness"]>;
 
@@ -109,17 +101,12 @@ function getProfileStrength(business: BusinessSummary | null, summary: OwnerSumm
 
 function DashboardLoading() {
   return (
-    <main
-      className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-      style={{ color: "var(--text)" }}
+    <div
+      className="h-[70vh] rounded-[2rem] border"
+      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
-      <section className="mx-auto w-full max-w-7xl">
-        <div
-          className="h-[70vh] rounded-[2rem] border"
-          style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-        />
-      </section>
-    </main>
+      <span className="sr-only">Loading dashboard</span>
+    </div>
   );
 }
 
@@ -240,106 +227,12 @@ export default function BusinessDashboardPage() {
           },
         ];
 
-  function switchBusiness(nextBusinessId: string) {
-    if (!access) return;
-
-    const nextBusiness = access.businesses.find(
-      (item) => getBusinessId(item) === nextBusinessId,
-    );
-
-    if (!nextBusiness) return;
-
-    saveActiveBusinessId(nextBusinessId);
-    setSummary(null);
-    setAccess({
-      ...access,
-      activeBusiness: nextBusiness,
-    });
-  }
-
   return (
-    <RequireAccess mode="business">
+    <>
       {!access ? (
         <DashboardLoading />
       ) : (
-        <main
-          className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-          style={{ color: "var(--text)" }}
-        >
-          <section className="relative mx-auto w-full max-w-7xl">
-            <nav
-              className="flex flex-col gap-3 rounded-[1.5rem] border p-3 sm:flex-row sm:items-center sm:justify-between"
-              style={{
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-              }}
-            >
-              <Link href="/" className="flex min-w-0 items-center gap-3">
-                <span
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full whitespace-nowrap text-sm font-black"
-                  style={{
-                    background: "var(--accent)",
-                    color: "var(--accent-contrast)",
-                  }}
-                >
-                  A
-                </span>
-
-                <span className="min-w-0">
-                  <span className="block truncate whitespace-nowrap text-sm font-black">
-                    Addressor business
-                  </span>
-                  <span
-                    className="block truncate text-xs font-bold"
-                    style={{ color: "var(--muted)" }}
-                  >
-                    Owner control center
-                  </span>
-                </span>
-              </Link>
-
-              <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
-                {access?.businesses && access.businesses.length > 1 ? (
-                  <label className="min-w-0">
-                    <span className="sr-only">Switch business</span>
-                    <select
-                      value={businessId}
-                      onChange={(event) => switchBusiness(event.target.value)}
-                      className="max-w-[15rem] rounded-full border px-4 py-3 text-sm font-black outline-none"
-                      style={{
-                        background: "var(--surface-strong)",
-                        borderColor: "var(--border)",
-                        color: "var(--text)",
-                      }}
-                    >
-                      {access.businesses.map((item) => (
-                        <option key={getBusinessId(item)} value={getBusinessId(item)}>
-                          {item.businessName}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-
-                <Link
-                  href="/businesses"
-                  className="rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
-                  style={{
-                    borderColor: "var(--border)",
-                    color: "var(--text)",
-                  }}
-                >
-                  Switch business
-                </Link>
-                <ThemeToggle />
-                <LogoutButton />
-              </div>
-            </nav>
-
-            <div className="mt-4 grid gap-5 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-start">
-              <BusinessNav />
-
-              <div className="min-w-0">
+        <>
                 {summaryError ? (
                   <p className="mb-5 rounded-[1rem] border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-black text-red-300">
                     {summaryError}
@@ -710,11 +603,8 @@ export default function BusinessDashboardPage() {
                 </section>
               </aside>
                 </div>
-              </div>
-            </div>
-          </section>
-        </main>
+        </>
       )}
-    </RequireAccess>
+    </>
   );
 }
