@@ -8,11 +8,7 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import BusinessNav from "@/components/business/BusinessNav";
 import type { AccessContext } from "@/lib/authRedirect";
 import { apiRequest } from "@/lib/api";
-import {
-  getCurrentAccessContext,
-  getStoredAccessContext,
-  getStoredAccessToken,
-} from "@/lib/authSession";
+import { getStoredAccessContext } from "@/lib/authSession";
 import {
   chooseActiveBusiness,
   getBusinessId,
@@ -168,40 +164,19 @@ function MetricCard({
 }
 
 export default function BusinessDashboardPage() {
-  const [access, setAccess] = useState<AccessContext | null>(null);
+  const [access, setAccess] = useState<AccessContext | null>(() =>
+    getStoredAccessContext(),
+  );
   const [summary, setSummary] = useState<OwnerSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    const cachedAccess = getStoredAccessContext();
 
-    async function loadAccess() {
-      const cachedAccess = getStoredAccessContext();
-
-      if (cachedAccess && !cancelled) {
-        setAccess(cachedAccess);
-      }
-
-      const token = getStoredAccessToken();
-      if (!token) return;
-
-      try {
-        const freshAccess = await getCurrentAccessContext(token);
-
-        if (!cancelled) {
-          setAccess(freshAccess);
-        }
-      } catch {
-        // RequireAccess handles expired access.
-      }
+    if (cachedAccess) {
+      setAccess(cachedAccess);
     }
-
-    loadAccess();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const business = chooseActiveBusiness(access?.businesses);

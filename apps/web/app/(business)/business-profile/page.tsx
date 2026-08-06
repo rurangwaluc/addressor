@@ -8,9 +8,7 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import BusinessNav from "@/components/business/BusinessNav";
 import { apiRequest } from "@/lib/api";
 import {
-  getCurrentAccessContext,
   getStoredAccessContext,
-  getStoredAccessToken,
   saveAccessContext,
 } from "@/lib/authSession";
 import type { AccessContext } from "@/lib/authRedirect";
@@ -240,16 +238,6 @@ export default function BusinessProfilePage() {
           setBusiness(selectedBusiness);
           if (selectedBusiness) {
             setForm(formFromBusiness(selectedBusiness));
-          }
-        }
-
-        const token = getStoredAccessToken();
-
-        if (token) {
-          const freshAccess = await getCurrentAccessContext(token);
-
-          if (!cancelled) {
-            setAccess(freshAccess);
           }
         }
       } catch {
