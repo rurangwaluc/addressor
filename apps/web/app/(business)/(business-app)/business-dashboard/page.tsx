@@ -132,7 +132,7 @@ function DashboardLoading() {
   return (
     <div className="grid gap-5" aria-live="polite" aria-busy="true">
       <section
-        className="rounded-[2rem] border p-5 sm:p-7 lg:p-8"
+        className="rounded-[1.75rem] border p-5 sm:p-6"
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
         <p
@@ -141,23 +141,18 @@ function DashboardLoading() {
         >
           Owner control room
         </p>
-        <h1 className="mt-4 text-3xl font-black tracking-[-0.06em] sm:text-5xl">
+        <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] sm:text-4xl">
           Loading your business overview…
         </h1>
-        <p className="mt-4 text-sm font-semibold" style={{ color: "var(--muted)" }}>
+        <p className="mt-2 text-sm font-semibold" style={{ color: "var(--muted)" }}>
           Your navigation remains available while the latest summary loads.
         </p>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        {[1, 2].map((item) => (
-          <div
-            key={item}
-            className="h-56 rounded-[2rem] border"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-          />
-        ))}
-      </div>
+      <div
+        className="h-72 rounded-[1.75rem] border sm:h-80"
+        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+      />
     </div>
   );
 }
@@ -165,7 +160,7 @@ function DashboardLoading() {
 function SummaryUnavailable({ onRetry }: { onRetry: () => void }) {
   return (
     <section
-      className="rounded-[2rem] border p-6 sm:p-8"
+      className="rounded-[1.75rem] border p-5 sm:p-6"
       style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
       <p
@@ -174,17 +169,17 @@ function SummaryUnavailable({ onRetry }: { onRetry: () => void }) {
       >
         Overview unavailable
       </p>
-      <h1 className="mt-4 text-3xl font-black tracking-[-0.05em]">
+      <h1 className="mt-2 text-3xl font-black tracking-[-0.05em]">
         We could not load the business summary.
       </h1>
-      <p className="mt-3 max-w-2xl text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+      <p className="mt-2 max-w-2xl text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
         No activity totals or readiness status are being shown because they may be
         inaccurate. Try loading the summary again.
       </p>
       <button
         type="button"
         onClick={onRetry}
-        className="mt-6 rounded-full px-5 py-3 whitespace-nowrap text-sm font-black"
+        className="mt-5 rounded-full px-5 py-3 whitespace-nowrap text-sm font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
       >
         Try again
@@ -196,7 +191,7 @@ function SummaryUnavailable({ onRetry }: { onRetry: () => void }) {
 function NoActiveBusiness() {
   return (
     <section
-      className="rounded-[2rem] border p-6 sm:p-8"
+      className="rounded-[1.75rem] border p-5 sm:p-6"
       style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
       <p
@@ -205,16 +200,16 @@ function NoActiveBusiness() {
       >
         Business needed
       </p>
-      <h1 className="mt-4 text-3xl font-black tracking-[-0.05em]">
+      <h1 className="mt-2 text-3xl font-black tracking-[-0.05em]">
         Choose a business to manage.
       </h1>
-      <p className="mt-3 max-w-2xl text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+      <p className="mt-2 max-w-2xl text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
         The dashboard needs an active business before it can show owner information.
       </p>
       <Link
         href="/businesses"
         prefetch
-        className="mt-6 inline-flex rounded-full px-5 py-3 whitespace-nowrap text-sm font-black"
+        className="mt-5 inline-flex rounded-full px-5 py-3 whitespace-nowrap text-sm font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
       >
         Choose business
@@ -228,6 +223,7 @@ function ActivityCard({
   value,
   detail,
   action,
+  scope,
   href,
   urgent = false,
 }: {
@@ -235,6 +231,7 @@ function ActivityCard({
   value: number;
   detail: string;
   action: string;
+  scope: string;
   href: string;
   urgent?: boolean;
 }) {
@@ -242,23 +239,27 @@ function ActivityCard({
     <Link
       href={href}
       prefetch
-      className="flex min-h-32 flex-col rounded-[1.1rem] border p-4 transition hover:scale-[1.005]"
+      className="group flex min-h-32 flex-col rounded-[1.1rem] p-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
       style={{
         background: urgent ? "var(--accent)" : "var(--surface-strong)",
-        borderColor: urgent ? "transparent" : "var(--border)",
         color: urgent ? "var(--accent-contrast)" : "var(--text)",
       }}
     >
-      <p className="text-xs font-black uppercase tracking-[0.16em] opacity-70">
-        {label}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.16em] opacity-70">
+          {label}
+        </p>
+        <span className="whitespace-nowrap text-[0.65rem] font-black opacity-60">
+          {scope}
+        </span>
+      </div>
       <strong className="mt-2 block text-4xl font-black tracking-[-0.06em]">
         {formatNumber(value)}
       </strong>
       <p className="mt-auto pt-3 text-xs font-semibold leading-5 opacity-75 sm:text-sm">
         {detail}
       </p>
-      <span className="mt-3 border-t border-current/10 pt-3 whitespace-nowrap text-xs font-black">
+      <span className="mt-3 whitespace-nowrap text-xs font-black group-hover:underline">
         {action}
       </span>
     </Link>
@@ -393,20 +394,20 @@ export default function BusinessDashboardPage() {
 
           <div className="flex flex-wrap gap-2">
             <span
-              className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
-              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+              className="rounded-full px-3 py-1.5 whitespace-nowrap text-xs font-black"
+              style={{ background: "var(--surface-strong)" }}
             >
               {getBusinessRoleLabel(business.role)}
             </span>
             <span
-              className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
-              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+              className="rounded-full px-3 py-1.5 whitespace-nowrap text-xs font-black"
+              style={{ background: "var(--surface-strong)" }}
             >
               {getStatusLabel(summary.business.verificationStatus)}
             </span>
             <span
-              className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
-              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+              className="rounded-full px-3 py-1.5 whitespace-nowrap text-xs font-black"
+              style={{ background: "var(--surface-strong)" }}
             >
               {getStatusLabel(summary.business.subscriptionStatus)} plan
             </span>
@@ -414,13 +415,13 @@ export default function BusinessDashboardPage() {
         </div>
 
         <div
-          className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4"
+          className="mt-4 flex items-center gap-2 overflow-x-auto border-t pb-1 pt-4"
           style={{
             borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
           }}
         >
           <p
-            className="mr-1 w-full text-xs font-black uppercase tracking-[0.18em] sm:w-auto"
+            className="mr-1 shrink-0 text-xs font-black uppercase tracking-[0.18em]"
             style={{ color: "var(--muted)" }}
           >
             Quick actions
@@ -431,16 +432,14 @@ export default function BusinessDashboardPage() {
             ["Review requests", "/business-bookings"],
             ["Check reviews", "/business-reviews"],
             ["Add photos", "/business-photos"],
-          ].map(([label, href], index) => (
+          ].map(([label, href]) => (
             <Link
               key={label}
               href={href}
               prefetch
-              className="rounded-full border px-4 py-2.5 whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
+              className="shrink-0 rounded-full px-3 py-2 whitespace-nowrap text-xs font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-sm"
               style={{
-                background: index === 0 ? "var(--accent)" : "transparent",
-                borderColor: index === 0 ? "transparent" : "var(--border)",
-                color: index === 0 ? "var(--accent-contrast)" : "var(--text)",
+                color: "var(--text)",
               }}
             >
               {label}
@@ -485,7 +484,7 @@ export default function BusinessDashboardPage() {
               borderColor: "color-mix(in srgb, var(--border) 45%, transparent)",
             }}
           >
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p
                 className="text-xs font-black uppercase tracking-[0.22em]"
@@ -512,9 +511,9 @@ export default function BusinessDashboardPage() {
               <Link
                 href={primaryAttention.href}
                 prefetch
-                className="rounded-[1.5rem] border border-l-4 p-5 transition hover:scale-[1.005] sm:p-6"
+                className="rounded-[1.5rem] border border-l-4 p-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:p-6"
                 style={{
-                  background: "var(--surface)",
+                  background: "var(--surface-strong)",
                   borderColor: "var(--border)",
                   borderLeftColor: "var(--accent)",
                   color: "var(--text)",
@@ -541,10 +540,8 @@ export default function BusinessDashboardPage() {
                       key={item.title}
                       href={item.href}
                       prefetch
-                      className="flex flex-col gap-3 rounded-[1.1rem] border p-4 transition hover:scale-[1.005] sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-3 rounded-[1.1rem] px-4 py-3.5 transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:flex-row sm:items-center sm:justify-between"
                       style={{
-                        background: "var(--surface)",
-                        borderColor: "var(--border)",
                         color: "var(--text)",
                       }}
                     >
@@ -567,8 +564,8 @@ export default function BusinessDashboardPage() {
             </div>
           ) : (
             <div
-              className="mt-5 rounded-[1.5rem] border p-5 sm:p-6"
-              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+              className="mt-5 rounded-[1.5rem] p-5 sm:p-6"
+              style={{ background: "var(--surface-strong)" }}
             >
               <p className="text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
                 There are no new requests or setup issues in the current business summary.
@@ -592,7 +589,7 @@ export default function BusinessDashboardPage() {
                 </p>
                 <h3 className="mt-2 text-xl font-black tracking-[-0.04em]">
                   {nextBestActions.length
-                    ? "Strengthen your business profile"
+                    ? "Complete your business setup"
                     : "Your business setup is complete"}
                 </h3>
               </div>
@@ -611,10 +608,8 @@ export default function BusinessDashboardPage() {
                     key={item.label}
                     href={item.href}
                     prefetch
-                    className="flex items-center justify-between gap-3 rounded-[0.9rem] border px-3 py-3 text-sm font-black transition hover:scale-[1.005]"
+                    className="flex items-center justify-between gap-3 rounded-[0.9rem] px-3 py-3 text-sm font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                     style={{
-                      background: "var(--surface)",
-                      borderColor: "var(--border)",
                       color: "var(--text)",
                     }}
                   >
@@ -623,7 +618,7 @@ export default function BusinessDashboardPage() {
                       className="whitespace-nowrap text-xs"
                       style={{ color: "var(--accent)" }}
                     >
-                      Add
+                      Complete
                     </span>
                   </Link>
                 ))}
@@ -640,7 +635,7 @@ export default function BusinessDashboardPage() {
           </div>
 
           <div className="grid gap-5 xl:col-span-5">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div>
               <p
                 className="text-xs font-black uppercase tracking-[0.22em]"
@@ -649,24 +644,25 @@ export default function BusinessDashboardPage() {
                 Business activity
               </p>
               <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-                Recorded activity
+                Customer activity
               </h2>
             </div>
             <p className="text-right text-xs font-bold" style={{ color: "var(--muted)" }}>
-              All-time totals
+              Current and all-time
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <ActivityCard
-              label="New requests"
+              label="Requests waiting"
               value={summary.overview.newBookings}
               detail={
                 hasNewRequests
-                  ? "Waiting for a response"
-                  : "Nothing waiting for a response"
+                  ? "Ready for your response"
+                  : "No request waiting"
               }
-              action="Review requests"
+              action="Open requests"
+              scope="Open now"
               href="/business-bookings"
               urgent={hasNewRequests}
             />
@@ -674,7 +670,8 @@ export default function BusinessDashboardPage() {
               label="Profile views"
               value={summary.overview.profileViews}
               detail="Recorded business page visits"
-              action="Improve profile"
+              action="Manage profile"
+              scope="All-time total"
               href="/business-profile"
             />
             <ActivityCard
@@ -682,6 +679,7 @@ export default function BusinessDashboardPage() {
               value={summary.overview.reviews}
               detail={`${formatNumber(summary.overview.comments)} review comment${summary.overview.comments === 1 ? "" : "s"}`}
               action="Read reviews"
+              scope="All-time total"
               href="/business-reviews"
             />
             <ActivityCard
@@ -689,6 +687,7 @@ export default function BusinessDashboardPage() {
               value={summary.overview.subscribers}
               detail="Active followers of updates"
               action="View subscribers"
+              scope="All-time total"
               href="/business-subscribers"
             />
           </div>
@@ -699,7 +698,7 @@ export default function BusinessDashboardPage() {
               borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
             }}
           >
-            <div className="flex items-end justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
             <p
               className="text-xs font-black uppercase tracking-[0.22em]"
@@ -709,23 +708,23 @@ export default function BusinessDashboardPage() {
             </p>
             <div className="mt-3 flex items-end gap-3">
               <strong className="text-3xl font-black tracking-[-0.06em]">
-                {readinessPercent}%
+                {nextBestActions.length}
               </strong>
               <span
                 className="pb-1 whitespace-nowrap text-xs font-black"
                 style={{ color: "var(--muted)" }}
               >
-                {completedReadiness}/{readinessItems.length} complete
+                {nextBestActions.length === 1 ? "item left" : "items left"} · {readinessPercent}% ready
               </span>
             </div>
               </div>
               <Link
                 href="/business-profile"
                 prefetch
-                className="rounded-full border px-4 py-2.5 whitespace-nowrap text-xs font-black"
+                className="rounded-full border px-4 py-2.5 whitespace-nowrap text-xs font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 style={{ borderColor: "var(--border)", color: "var(--text)" }}
               >
-                Improve profile
+                View profile
               </Link>
             </div>
             <div
