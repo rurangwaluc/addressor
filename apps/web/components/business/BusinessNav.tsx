@@ -41,7 +41,7 @@ export default function BusinessNav() {
 
   return (
     <aside
-      className="rounded-[1.5rem] border p-2 lg:sticky lg:top-5 lg:p-3"
+      className="rounded-[1.25rem] border p-1.5 sm:rounded-[1.5rem] sm:p-2 lg:sticky lg:top-5 lg:p-3"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
@@ -50,7 +50,7 @@ export default function BusinessNav() {
       <button
         type="button"
         onClick={() => setMobileOpen((current) => !current)}
-        className="flex w-full items-center justify-between rounded-[1rem] border px-4 py-3 text-left text-sm font-black lg:hidden"
+        className="flex w-full items-center justify-between rounded-[0.9rem] border px-3 py-2 text-left text-sm font-black lg:hidden"
         style={{
           background: "var(--surface-strong)",
           borderColor: "var(--border)",
@@ -59,18 +59,19 @@ export default function BusinessNav() {
         aria-expanded={mobileOpen}
         aria-controls="business-mobile-menu"
       >
-        <span>
+        <span className="flex min-w-0 items-center gap-2">
           <span
-            className="block text-[0.65rem] uppercase tracking-[0.2em]"
+            className="shrink-0 text-[0.6rem] uppercase tracking-[0.16em]"
             style={{ color: "var(--accent)" }}
           >
             Business menu
           </span>
-          <span className="mt-1 block whitespace-nowrap">{activeLink.label}</span>
+          <span aria-hidden="true" style={{ color: "var(--muted)" }}>·</span>
+          <span className="truncate whitespace-nowrap">{activeLink.label}</span>
         </span>
 
         <span
-          className="grid h-9 w-9 place-items-center rounded-full border text-base"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full border text-sm"
           style={{
             borderColor: "var(--border)",
             color: "var(--accent)",
@@ -98,7 +99,7 @@ export default function BusinessNav() {
 
       <nav
         id="business-mobile-menu"
-        className={`mt-2 grid-cols-2 gap-2 sm:grid-cols-4 lg:mt-0 lg:grid lg:grid-cols-1 ${
+        className={`mt-1.5 grid-cols-3 gap-1.5 min-[380px]:grid-cols-4 sm:mt-2 sm:gap-2 lg:mt-0 lg:grid lg:grid-cols-1 ${
           mobileOpen ? "grid" : "hidden"
         } lg:!grid`}
         aria-label="Business pages"
@@ -115,7 +116,7 @@ export default function BusinessNav() {
               onMouseEnter={() => router.prefetch(item.href)}
               onFocus={() => router.prefetch(item.href)}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center justify-center gap-2 rounded-[1rem] px-3 py-3 whitespace-nowrap text-xs font-black transition hover:scale-[1.01] hover:bg-[var(--surface-strong)] sm:text-sm lg:justify-start"
+              className="flex flex-col items-center justify-center gap-1 rounded-[0.8rem] px-1 py-2 whitespace-nowrap text-[0.65rem] font-black transition hover:bg-[var(--surface-strong)] sm:flex-row sm:gap-2 sm:rounded-[1rem] sm:px-3 sm:py-3 sm:text-sm lg:justify-start lg:hover:scale-[1.01]"
               style={{
                 background: active ? "var(--accent)" : "transparent",
                 color: active ? "var(--accent-contrast)" : "var(--text)",

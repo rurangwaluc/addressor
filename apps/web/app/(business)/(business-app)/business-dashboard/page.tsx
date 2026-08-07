@@ -132,7 +132,7 @@ function DashboardLoading() {
   return (
     <div className="grid gap-5" aria-live="polite" aria-busy="true">
       <section
-        className="rounded-[1.75rem] border p-5 sm:p-6"
+        className="rounded-[1.5rem] border p-3 sm:rounded-[1.75rem] sm:p-6"
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
         <p
@@ -150,7 +150,7 @@ function DashboardLoading() {
       </section>
 
       <div
-        className="h-72 rounded-[1.75rem] border sm:h-80"
+        className="h-52 rounded-[1.5rem] border sm:h-80 sm:rounded-[1.75rem]"
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       />
     </div>
@@ -160,7 +160,7 @@ function DashboardLoading() {
 function SummaryUnavailable({ onRetry }: { onRetry: () => void }) {
   return (
     <section
-      className="rounded-[1.75rem] border p-5 sm:p-6"
+      className="rounded-[1.5rem] border p-3 sm:rounded-[1.75rem] sm:p-6"
       style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
       <p
@@ -191,7 +191,7 @@ function SummaryUnavailable({ onRetry }: { onRetry: () => void }) {
 function NoActiveBusiness() {
   return (
     <section
-      className="rounded-[1.75rem] border p-5 sm:p-6"
+      className="rounded-[1.5rem] border p-3 sm:rounded-[1.75rem] sm:p-6"
       style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
       <p
@@ -239,13 +239,13 @@ function ActivityCard({
     <Link
       href={href}
       prefetch
-      className="group flex min-h-32 flex-col rounded-[1.1rem] p-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+      className="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 rounded-[1rem] p-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:flex sm:min-h-32 sm:flex-col sm:items-stretch sm:rounded-[1.1rem] sm:p-4"
       style={{
         background: urgent ? "var(--accent)" : "var(--surface-strong)",
         color: urgent ? "var(--accent-contrast)" : "var(--text)",
       }}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 sm:flex-nowrap sm:items-start sm:justify-between sm:gap-3">
         <p className="text-xs font-black uppercase tracking-[0.16em] opacity-70">
           {label}
         </p>
@@ -253,13 +253,13 @@ function ActivityCard({
           {scope}
         </span>
       </div>
-      <strong className="mt-2 block text-4xl font-black tracking-[-0.06em]">
+      <strong className="col-start-2 row-span-2 row-start-1 text-2xl font-black tracking-[-0.06em] sm:mt-2 sm:block sm:text-4xl">
         {formatNumber(value)}
       </strong>
-      <p className="mt-auto pt-3 text-xs font-semibold leading-5 opacity-75 sm:text-sm">
+      <p className="col-start-1 text-xs font-semibold leading-5 opacity-75 sm:mt-auto sm:pt-3 sm:text-sm">
         {detail}
       </p>
-      <span className="mt-3 whitespace-nowrap text-xs font-black group-hover:underline">
+      <span className="col-span-2 mt-1 whitespace-nowrap text-xs font-black group-hover:underline sm:mt-3">
         {action}
       </span>
     </Link>
@@ -368,15 +368,15 @@ export default function BusinessDashboardPage() {
   const hasNewRequests = summary.overview.newBookings > 0;
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-3 sm:gap-5">
       <section
-        className="rounded-[1.75rem] border p-5 sm:p-6"
+        className="rounded-[1.5rem] border p-3 sm:rounded-[1.75rem] sm:p-6"
         style={{
           background: "var(--surface)",
           borderColor: "var(--border)",
         }}
       >
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-col gap-3 sm:gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
             <p
               className="text-xs font-black uppercase tracking-[0.22em]"
@@ -384,7 +384,7 @@ export default function BusinessDashboardPage() {
             >
               Owner control room
             </p>
-            <h1 className="mt-2 break-words text-3xl font-black tracking-[-0.06em] sm:text-4xl">
+            <h1 className="mt-1.5 break-words text-2xl font-black tracking-[-0.06em] sm:mt-2 sm:text-4xl">
               {summary.business.displayName}
             </h1>
             <p className="mt-2 text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
@@ -392,21 +392,21 @@ export default function BusinessDashboardPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             <span
-              className="rounded-full px-3 py-1.5 whitespace-nowrap text-xs font-black"
+              className="rounded-full px-2.5 py-1.5 whitespace-nowrap text-[0.7rem] font-black sm:px-3 sm:text-xs"
               style={{ background: "var(--surface-strong)" }}
             >
               {getBusinessRoleLabel(business.role)}
             </span>
             <span
-              className="rounded-full px-3 py-1.5 whitespace-nowrap text-xs font-black"
+              className="rounded-full px-2.5 py-1.5 whitespace-nowrap text-[0.7rem] font-black sm:px-3 sm:text-xs"
               style={{ background: "var(--surface-strong)" }}
             >
               {getStatusLabel(summary.business.verificationStatus)}
             </span>
             <span
-              className="rounded-full px-3 py-1.5 whitespace-nowrap text-xs font-black"
+              className="rounded-full px-2.5 py-1.5 whitespace-nowrap text-[0.7rem] font-black sm:px-3 sm:text-xs"
               style={{ background: "var(--surface-strong)" }}
             >
               {getStatusLabel(summary.business.subscriptionStatus)} plan
@@ -415,42 +415,49 @@ export default function BusinessDashboardPage() {
         </div>
 
         <div
-          className="mt-4 flex items-center gap-2 overflow-x-auto border-t pb-1 pt-4"
+          className="mt-4 border-t pt-4 sm:flex sm:items-center sm:gap-2"
           style={{
             borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
           }}
         >
           <p
-            className="mr-1 shrink-0 text-xs font-black uppercase tracking-[0.18em]"
+            className="shrink-0 text-xs font-black uppercase tracking-[0.18em] sm:mr-1"
             style={{ color: "var(--muted)" }}
           >
             Quick actions
           </p>
-          {[
-            ["Edit profile", "/business-profile"],
-            ["Manage offerings", "/business-menu"],
-            ["Review requests", "/business-bookings"],
-            ["Check reviews", "/business-reviews"],
-            ["Add photos", "/business-photos"],
-          ].map(([label, href], index) => (
-            <Link
-              key={label}
-              href={href}
-              prefetch
-              className="shrink-0 rounded-full px-3 py-2 whitespace-nowrap text-xs font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-sm"
-              style={{
-                background: index === 0 ? "var(--accent)" : "transparent",
-                color: index === 0 ? "var(--accent-contrast)" : "var(--text)",
-              }}
-            >
-              {label}
-            </Link>
-          ))}
+          <div
+            className="mt-1.5 grid min-w-0 grid-cols-3 gap-1.5 sm:mt-0 sm:flex sm:flex-wrap sm:gap-2"
+            aria-label="Quick actions"
+            role="navigation"
+          >
+            {[
+              ["Edit profile", "Edit profile", "/business-profile"],
+              ["Offerings", "Manage offerings", "/business-menu"],
+              ["Requests", "Review requests", "/business-bookings"],
+              ["Reviews", "Check reviews", "/business-reviews"],
+              ["Photos", "Add photos", "/business-photos"],
+            ].map(([mobileLabel, desktopLabel, href], index) => (
+              <Link
+                key={desktopLabel}
+                href={href}
+                prefetch
+                className="min-w-0 rounded-full px-1.5 py-2 text-center whitespace-nowrap text-[0.65rem] font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:px-3 sm:text-sm"
+                style={{
+                  background: index === 0 ? "var(--accent)" : "transparent",
+                  color: index === 0 ? "var(--accent-contrast)" : "var(--text)",
+                }}
+              >
+                <span className="sm:hidden">{mobileLabel}</span>
+                <span className="hidden sm:inline">{desktopLabel}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       <section
-        className="rounded-[1.75rem] border p-5 sm:p-6"
+        className="rounded-[1.5rem] border p-3 sm:rounded-[1.75rem] sm:p-6"
         style={{
           background: "var(--surface)",
           borderColor: "var(--border)",
@@ -469,16 +476,16 @@ export default function BusinessDashboardPage() {
             >
               Command center
             </p>
-            <h2 className="mt-1 text-2xl font-black tracking-[-0.04em]">
+            <h2 className="mt-1 text-xl font-black tracking-[-0.04em] sm:text-2xl">
               What needs your attention
             </h2>
           </div>
-          <p className="text-xs font-bold" style={{ color: "var(--muted)" }}>
+          <p className="hidden text-xs font-bold sm:block" style={{ color: "var(--muted)" }}>
             Priorities, activity, and readiness
           </p>
         </div>
 
-        <div className="mt-5 grid gap-6 xl:grid-cols-12">
+        <div className="mt-3 grid gap-4 sm:mt-5 sm:gap-6 xl:grid-cols-12">
           <div
             className="xl:col-span-7 xl:border-r xl:pr-6"
             style={{
@@ -493,14 +500,14 @@ export default function BusinessDashboardPage() {
               >
                 Needs attention
               </p>
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+              <h2 className="mt-2 text-xl font-black tracking-[-0.04em] sm:text-2xl">
                 {primaryAttention
                   ? `${attentionItems.length} action${attentionItems.length === 1 ? "" : "s"} to handle`
                   : "Everything important is covered"}
               </h2>
             </div>
             <span
-              className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black"
+              className="hidden rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black sm:inline-flex"
               style={{ borderColor: "var(--border)", color: "var(--muted)" }}
             >
               {primaryAttention ? "Action needed" : "All clear"}
@@ -508,11 +515,11 @@ export default function BusinessDashboardPage() {
           </div>
 
           {primaryAttention ? (
-            <div className="mt-5 grid gap-3">
+            <div className="mt-3 grid gap-2.5 sm:mt-5 sm:gap-3">
               <Link
                 href={primaryAttention.href}
                 prefetch
-                className="rounded-[1.5rem] border border-l-4 p-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:p-6"
+                className="rounded-[1.25rem] border border-l-4 p-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:rounded-[1.5rem] sm:p-6"
                 style={{
                   background: "var(--surface-strong)",
                   borderColor: "var(--border)",
@@ -523,13 +530,13 @@ export default function BusinessDashboardPage() {
                 <span className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--accent)" }}>
                   First priority
                 </span>
-                <h3 className="mt-3 text-2xl font-black tracking-[-0.04em]">
+                <h3 className="mt-3 text-xl font-black tracking-[-0.04em] sm:text-2xl">
                   {primaryAttention.title}
                 </h3>
                 <p className="mt-2 text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
                   {primaryAttention.text}
                 </p>
-                <span className="mt-5 inline-flex rounded-full px-4 py-3 whitespace-nowrap text-sm font-black" style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>
+                <span className="mt-4 inline-flex rounded-full px-4 py-2.5 whitespace-nowrap text-sm font-black sm:mt-5 sm:py-3" style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>
                   {primaryAttention.action}
                 </span>
               </Link>
@@ -541,7 +548,7 @@ export default function BusinessDashboardPage() {
                       key={item.title}
                       href={item.href}
                       prefetch
-                      className="flex flex-col gap-3 rounded-[1.1rem] px-4 py-3.5 transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-2 rounded-[1rem] px-3 py-2.5 transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:gap-3 sm:rounded-[1.1rem] sm:px-4 sm:py-3.5 sm:flex-row sm:items-center sm:justify-between"
                       style={{
                         color: "var(--text)",
                       }}
@@ -565,7 +572,7 @@ export default function BusinessDashboardPage() {
             </div>
           ) : (
             <div
-              className="mt-5 rounded-[1.5rem] p-5 sm:p-6"
+              className="mt-3 rounded-[1.25rem] p-3 sm:mt-5 sm:rounded-[1.5rem] sm:p-6"
               style={{ background: "var(--surface-strong)" }}
             >
               <p className="text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
@@ -575,12 +582,12 @@ export default function BusinessDashboardPage() {
           )}
 
           <div
-            className="mt-5 border-t pt-5"
+            className="mt-3 border-t pt-3 sm:mt-5 sm:pt-5"
             style={{
               borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
             }}
           >
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-2">
               <div>
                 <p
                   className="text-xs font-black uppercase tracking-[0.22em]"
@@ -588,7 +595,7 @@ export default function BusinessDashboardPage() {
                 >
                   Next best actions
                 </p>
-                <h3 className="mt-2 text-xl font-black tracking-[-0.04em]">
+                <h3 className="mt-1.5 text-lg font-black tracking-[-0.04em] sm:mt-2 sm:text-xl">
                   {nextBestActions.length
                     ? "Complete your business setup"
                     : "Your business setup is complete"}
@@ -603,13 +610,13 @@ export default function BusinessDashboardPage() {
             </div>
 
             {nextBestActions.length ? (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="mt-2 grid gap-1.5 sm:mt-4 sm:grid-cols-2 sm:gap-2">
                 {nextBestActions.map((item) => (
                   <Link
                     key={item.label}
                     href={item.href}
                     prefetch
-                    className="flex items-center justify-between gap-3 rounded-[0.9rem] px-3 py-3 text-sm font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                    className="flex items-center justify-between gap-3 rounded-[0.9rem] px-3 py-2.5 text-sm font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:py-3"
                     style={{
                       color: "var(--text)",
                     }}
@@ -635,7 +642,7 @@ export default function BusinessDashboardPage() {
           </div>
           </div>
 
-          <div className="grid gap-5 xl:col-span-5">
+          <div className="grid gap-3 sm:gap-5 xl:col-span-5">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div>
               <p
@@ -644,7 +651,7 @@ export default function BusinessDashboardPage() {
               >
                 Business activity
               </p>
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+              <h2 className="mt-2 text-xl font-black tracking-[-0.04em] sm:text-2xl">
                 Customer activity
               </h2>
             </div>
@@ -653,7 +660,7 @@ export default function BusinessDashboardPage() {
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
             <ActivityCard
               label="Requests waiting"
               value={summary.overview.newBookings}
@@ -694,25 +701,25 @@ export default function BusinessDashboardPage() {
           </div>
 
           <div
-            className="border-t pt-5"
+            className="order-first border-b pb-3 sm:order-none sm:border-b-0 sm:border-t sm:pb-0 sm:pt-5"
             style={{
               borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
             }}
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
+              <div className="min-w-0">
             <p
               className="text-xs font-black uppercase tracking-[0.22em]"
               style={{ color: "var(--accent)" }}
             >
               Business readiness
             </p>
-            <div className="mt-3 flex items-end gap-3">
+            <div className="mt-1.5 flex items-end gap-2 sm:mt-3 sm:gap-3">
               <strong className="text-3xl font-black tracking-[-0.06em]">
                 {nextBestActions.length}
               </strong>
               <span
-                className="pb-1 whitespace-nowrap text-xs font-black"
+                className="pb-1 text-xs font-black"
                 style={{ color: "var(--muted)" }}
               >
                 {nextBestActions.length === 1 ? "item left" : "items left"} · {readinessPercent}% ready
@@ -722,14 +729,14 @@ export default function BusinessDashboardPage() {
               <Link
                 href="/business-profile"
                 prefetch
-                className="rounded-full border px-4 py-2.5 whitespace-nowrap text-xs font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                className="rounded-full border px-3 py-2.5 whitespace-nowrap text-xs font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:px-4"
                 style={{ borderColor: "var(--border)", color: "var(--text)" }}
               >
                 View profile
               </Link>
             </div>
             <div
-              className="mt-3 h-2 overflow-hidden rounded-full"
+              className="mt-2 h-1.5 overflow-hidden rounded-full sm:mt-3 sm:h-2"
               style={{ background: "var(--border)" }}
             >
               <div
