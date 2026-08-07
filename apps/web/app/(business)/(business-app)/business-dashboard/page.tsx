@@ -54,13 +54,16 @@ type OwnerSummaryResponse = {
   data: OwnerSummary;
 };
 
-const emptyOverview: OwnerSummary["overview"] = {
-  profileViews: 0,
-  newBookings: 0,
-  reviews: 0,
-  comments: 0,
-  menuItems: 0,
-  subscribers: 0,
+type ReadinessItem = {
+  label: string;
+  complete: boolean;
+  href: string;
+};
+
+const priorityOrder = {
+  high: 0,
+  medium: 1,
+  low: 2,
 };
 
 function formatNumber(value: number) {
@@ -73,79 +76,191 @@ function getBusinessRoleLabel(role: BusinessSummary["role"]) {
   return "Team member";
 }
 
-function getBusinessName(business: BusinessSummary | null, summary: OwnerSummary | null) {
-  return summary?.business.displayName ?? business?.businessName ?? "Your business";
+function getStatusLabel(status: string) {
+  return status
+    .split("_")
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
 }
 
-function getProfileStrength(business: BusinessSummary | null, summary: OwnerSummary | null) {
-  const currentBusiness = summary?.business;
+function getBusinessLocation(business: OwnerSummary["business"] | null) {
+  if (!business) return "Location not loaded";
 
-  const items = [
-    Boolean(business),
-    business?.onboardingStatus === "completed" ||
-      currentBusiness?.onboardingStatus === "completed",
-    Boolean(currentBusiness?.coverImageUrl),
-    Boolean(currentBusiness?.phone || currentBusiness?.whatsappNumber),
-    Boolean(currentBusiness?.shortDescription),
-    (summary?.overview.menuItems ?? 0) > 0,
+  return [business.sector, business.district, business.city]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function buildReadinessItems(summary: OwnerSummary): ReadinessItem[] {
+  const { business, overview } = summary;
+
+  return [
+    {
+      label: "Account setup",
+      complete: business.onboardingStatus === "completed",
+      href: "/business-profile",
+    },
+    {
+      label: "Cover photo",
+      complete: Boolean(business.coverImageUrl),
+      href: "/business-photos",
+    },
+    {
+      label: "Clear description",
+      complete: Boolean(business.shortDescription),
+      href: "/business-profile",
+    },
+    {
+      label: "Contact method",
+      complete: Boolean(business.phone || business.whatsappNumber),
+      href: "/business-profile",
+    },
+    {
+      label: "Business location",
+      complete: Boolean(business.city),
+      href: "/business-profile",
+    },
+    {
+      label: "Products or services",
+      complete: overview.menuItems > 0,
+      href: "/business-menu",
+    },
   ];
-
-  const done = items.filter(Boolean).length;
-
-  return {
-    done,
-    total: items.length,
-    percent: Math.round((done / items.length) * 100),
-  };
 }
 
 function DashboardLoading() {
   return (
-    <div
-      className="h-[70vh] rounded-[2rem] border"
-      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-    >
-      <span className="sr-only">Loading dashboard</span>
+    <div className="grid gap-5" aria-live="polite" aria-busy="true">
+      <section
+        className="rounded-[2rem] border p-5 sm:p-7 lg:p-8"
+        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+      >
+        <p
+          className="text-xs font-black uppercase tracking-[0.22em]"
+          style={{ color: "var(--accent)" }}
+        >
+          Owner control room
+        </p>
+        <h1 className="mt-4 text-3xl font-black tracking-[-0.06em] sm:text-5xl">
+          Loading your business overview…
+        </h1>
+        <p className="mt-4 text-sm font-semibold" style={{ color: "var(--muted)" }}>
+          Your navigation remains available while the latest summary loads.
+        </p>
+      </section>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        {[1, 2].map((item) => (
+          <div
+            key={item}
+            className="h-56 rounded-[2rem] border"
+            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-function MetricCard({
+function SummaryUnavailable({ onRetry }: { onRetry: () => void }) {
+  return (
+    <section
+      className="rounded-[2rem] border p-6 sm:p-8"
+      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+    >
+      <p
+        className="text-xs font-black uppercase tracking-[0.22em]"
+        style={{ color: "var(--accent)" }}
+      >
+        Overview unavailable
+      </p>
+      <h1 className="mt-4 text-3xl font-black tracking-[-0.05em]">
+        We could not load the business summary.
+      </h1>
+      <p className="mt-3 max-w-2xl text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+        No activity totals or readiness status are being shown because they may be
+        inaccurate. Try loading the summary again.
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-6 rounded-full px-5 py-3 whitespace-nowrap text-sm font-black"
+        style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+      >
+        Try again
+      </button>
+    </section>
+  );
+}
+
+function NoActiveBusiness() {
+  return (
+    <section
+      className="rounded-[2rem] border p-6 sm:p-8"
+      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+    >
+      <p
+        className="text-xs font-black uppercase tracking-[0.22em]"
+        style={{ color: "var(--accent)" }}
+      >
+        Business needed
+      </p>
+      <h1 className="mt-4 text-3xl font-black tracking-[-0.05em]">
+        Choose a business to manage.
+      </h1>
+      <p className="mt-3 max-w-2xl text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+        The dashboard needs an active business before it can show owner information.
+      </p>
+      <Link
+        href="/businesses"
+        prefetch
+        className="mt-6 inline-flex rounded-full px-5 py-3 whitespace-nowrap text-sm font-black"
+        style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+      >
+        Choose business
+      </Link>
+    </section>
+  );
+}
+
+function ActivityCard({
   label,
   value,
-  text,
+  detail,
+  action,
   href,
+  urgent = false,
 }: {
   label: string;
   value: number;
-  text: string;
+  detail: string;
+  action: string;
   href: string;
+  urgent?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="rounded-[1.35rem] border p-4 transition hover:scale-[1.01] sm:rounded-[1.5rem] sm:p-5"
+      prefetch
+      className="flex min-h-32 flex-col rounded-[1.1rem] border p-4 transition hover:scale-[1.005]"
       style={{
-        background: "var(--surface)",
-        borderColor: "var(--border)",
-        color: "var(--text)",
+        background: urgent ? "var(--accent)" : "var(--surface-strong)",
+        borderColor: urgent ? "transparent" : "var(--border)",
+        color: urgent ? "var(--accent-contrast)" : "var(--text)",
       }}
     >
-      <p
-        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.18em]"
-        style={{ color: "var(--muted)" }}
-      >
+      <p className="text-xs font-black uppercase tracking-[0.16em] opacity-70">
         {label}
       </p>
-      <strong className="mt-3 block text-3xl font-black tracking-[-0.06em] sm:mt-4 sm:text-4xl">
+      <strong className="mt-2 block text-4xl font-black tracking-[-0.06em]">
         {formatNumber(value)}
       </strong>
-      <p
-        className="mt-2 text-sm font-semibold leading-6"
-        style={{ color: "var(--muted)" }}
-      >
-        {text}
+      <p className="mt-auto pt-3 text-xs font-semibold leading-5 opacity-75 sm:text-sm">
+        {detail}
       </p>
+      <span className="mt-3 border-t border-current/10 pt-3 whitespace-nowrap text-xs font-black">
+        {action}
+      </span>
     </Link>
   );
 }
@@ -155,8 +270,9 @@ export default function BusinessDashboardPage() {
     getStoredAccessContext(),
   );
   const [summary, setSummary] = useState<OwnerSummary | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const cachedAccess = getStoredAccessContext();
@@ -173,7 +289,10 @@ export default function BusinessDashboardPage() {
     let cancelled = false;
 
     async function loadOwnerSummary() {
-      if (!businessId) return;
+      if (!businessId) {
+        setSummaryLoading(false);
+        return;
+      }
 
       setSummaryLoading(true);
       setSummaryError("");
@@ -181,9 +300,7 @@ export default function BusinessDashboardPage() {
       try {
         const response = await apiRequest<OwnerSummaryResponse>(
           `/businesses/${businessId}/owner-summary`,
-          {
-            method: "GET",
-          },
+          { method: "GET" },
         );
 
         if (!cancelled) {
@@ -192,7 +309,7 @@ export default function BusinessDashboardPage() {
       } catch {
         if (!cancelled) {
           setSummary(null);
-          setSummaryError("We could not load the owner summary. Please try again.");
+          setSummaryError("We could not load the owner summary.");
         }
       } finally {
         if (!cancelled) {
@@ -206,405 +323,428 @@ export default function BusinessDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [businessId]);
+  }, [businessId, reloadKey]);
 
-  const overview = summary?.overview ?? emptyOverview;
-  const profileStrength = useMemo(
-    () => getProfileStrength(business, summary),
-    [business, summary],
+  const readinessItems = useMemo(
+    () => (summary ? buildReadinessItems(summary) : []),
+    [summary],
+  );
+  const completedReadiness = readinessItems.filter((item) => item.complete).length;
+  const nextBestActions = readinessItems.filter((item) => !item.complete);
+  const readinessPercent = readinessItems.length
+    ? Math.round((completedReadiness / readinessItems.length) * 100)
+    : 0;
+  const attentionItems = useMemo(
+    () =>
+      summary
+        ? [...summary.attention].sort(
+            (first, second) =>
+              priorityOrder[first.priority] - priorityOrder[second.priority],
+          )
+        : [],
+    [summary],
   );
 
-  const attentionItems =
-    summary?.attention.length
-      ? summary.attention
-      : [
-          {
-            title: "Business account is ready",
-            text: "Your next customer actions will appear here as people view, book, review, or subscribe.",
-            action: "Keep improving",
-            href: "/business-profile",
-            priority: "low" as const,
-          },
-        ];
+  if (!access) {
+    return <DashboardLoading />;
+  }
+
+  if (!business) {
+    return <NoActiveBusiness />;
+  }
+
+  if (summaryLoading && !summary) {
+    return <DashboardLoading />;
+  }
+
+  if (summaryError || !summary) {
+    return <SummaryUnavailable onRetry={() => setReloadKey((value) => value + 1)} />;
+  }
+
+  const location = getBusinessLocation(summary.business);
+  const primaryAttention = attentionItems[0];
+  const remainingAttention = attentionItems.slice(1);
+  const hasNewRequests = summary.overview.newBookings > 0;
 
   return (
-    <>
-      {!access ? (
-        <DashboardLoading />
-      ) : (
-        <>
-                {summaryError ? (
-                  <p className="mb-5 rounded-[1rem] border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-black text-red-300">
-                    {summaryError}
-                  </p>
-                ) : null}
+    <div className="grid gap-5">
+      <section
+        className="rounded-[1.75rem] border p-5 sm:p-6"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+        }}
+      >
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <p
+              className="text-xs font-black uppercase tracking-[0.22em]"
+              style={{ color: "var(--accent)" }}
+            >
+              Owner control room
+            </p>
+            <h1 className="mt-2 break-words text-3xl font-black tracking-[-0.06em] sm:text-4xl">
+              {summary.business.displayName}
+            </h1>
+            <p className="mt-2 text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+              {[summary.business.category, location].filter(Boolean).join(" · ")}
+            </p>
+          </div>
 
-                <div className="grid gap-5 xl:grid-cols-[1.45fr_0.75fr]">
-              <section className="grid gap-5">
-                <div
-                  className="rounded-[2rem] border p-5 sm:p-7 lg:p-8"
-                  style={{
-                    background: "var(--surface)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <div className="grid gap-5 min-[760px]:grid-cols-[1fr_19rem] min-[760px]:items-start sm:gap-7">
-                    <div>
-                      <p
-                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.24em]"
-                        style={{ color: "var(--accent)" }}
-                      >
-                        Today
-                      </p>
+          <div className="flex flex-wrap gap-2">
+            <span
+              className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              {getBusinessRoleLabel(business.role)}
+            </span>
+            <span
+              className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              {getStatusLabel(summary.business.verificationStatus)}
+            </span>
+            <span
+              className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              {getStatusLabel(summary.business.subscriptionStatus)} plan
+            </span>
+          </div>
+        </div>
 
-                      <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-[-0.06em] min-[390px]:text-4xl sm:text-5xl lg:text-6xl">
-                        {getBusinessName(business, summary)}
-                      </h1>
+        <div
+          className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4"
+          style={{
+            borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
+          }}
+        >
+          <p
+            className="mr-1 w-full text-xs font-black uppercase tracking-[0.18em] sm:w-auto"
+            style={{ color: "var(--muted)" }}
+          >
+            Quick actions
+          </p>
+          {[
+            ["Edit profile", "/business-profile"],
+            ["Manage offerings", "/business-menu"],
+            ["Review requests", "/business-bookings"],
+            ["Check reviews", "/business-reviews"],
+            ["Add photos", "/business-photos"],
+          ].map(([label, href], index) => (
+            <Link
+              key={label}
+              href={href}
+              prefetch
+              className="rounded-full border px-4 py-2.5 whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
+              style={{
+                background: index === 0 ? "var(--accent)" : "transparent",
+                borderColor: index === 0 ? "transparent" : "var(--border)",
+                color: index === 0 ? "var(--accent-contrast)" : "var(--text)",
+              }}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      </section>
 
-                      <p
-                        className="mt-4 max-w-2xl text-sm font-semibold leading-7 sm:text-base"
-                        style={{ color: "var(--muted)" }}
-                      >
-                        See what customers are doing, what needs a reply, and what
-                        to improve so more people can choose your business faster.
-                      </p>
+      <section
+        className="rounded-[1.75rem] border p-5 sm:p-6"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+        }}
+      >
+        <div
+          className="flex flex-col gap-1 border-b pb-4 sm:flex-row sm:items-end sm:justify-between"
+          style={{
+            borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
+          }}
+        >
+          <div>
+            <p
+              className="text-xs font-black uppercase tracking-[0.22em]"
+              style={{ color: "var(--accent)" }}
+            >
+              Command center
+            </p>
+            <h2 className="mt-1 text-2xl font-black tracking-[-0.04em]">
+              What needs your attention
+            </h2>
+          </div>
+          <p className="text-xs font-bold" style={{ color: "var(--muted)" }}>
+            Priorities, activity, and readiness
+          </p>
+        </div>
 
-                      <div className="mt-6 flex flex-wrap gap-2">
-                        <span
-                          className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
-                          style={{
-                            background: "var(--surface-strong)",
-                            borderColor: "var(--border)",
-                            color: "var(--accent)",
-                          }}
-                        >
-                          {business ? getBusinessRoleLabel(business.role) : "Checking"}
-                        </span>
+        <div className="mt-5 grid gap-6 xl:grid-cols-12">
+          <div
+            className="xl:col-span-7 xl:border-r xl:pr-6"
+            style={{
+              borderColor: "color-mix(in srgb, var(--border) 45%, transparent)",
+            }}
+          >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p
+                className="text-xs font-black uppercase tracking-[0.22em]"
+                style={{ color: "var(--accent)" }}
+              >
+                Needs attention
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+                {primaryAttention
+                  ? `${attentionItems.length} action${attentionItems.length === 1 ? "" : "s"} to handle`
+                  : "Everything important is covered"}
+              </h2>
+            </div>
+            <span
+              className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black"
+              style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+            >
+              {primaryAttention ? "Action needed" : "All clear"}
+            </span>
+          </div>
 
-                        <span
-                          className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
-                          style={{
-                            background: "var(--surface-strong)",
-                            borderColor: "var(--border)",
-                          }}
-                        >
-                          {summaryLoading ? "Loading owner data" : "Real owner data"}
-                        </span>
+          {primaryAttention ? (
+            <div className="mt-5 grid gap-3">
+              <Link
+                href={primaryAttention.href}
+                prefetch
+                className="rounded-[1.5rem] border border-l-4 p-5 transition hover:scale-[1.005] sm:p-6"
+                style={{
+                  background: "var(--surface)",
+                  borderColor: "var(--border)",
+                  borderLeftColor: "var(--accent)",
+                  color: "var(--text)",
+                }}
+              >
+                <span className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--accent)" }}>
+                  First priority
+                </span>
+                <h3 className="mt-3 text-2xl font-black tracking-[-0.04em]">
+                  {primaryAttention.title}
+                </h3>
+                <p className="mt-2 text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+                  {primaryAttention.text}
+                </p>
+                <span className="mt-5 inline-flex rounded-full px-4 py-3 whitespace-nowrap text-sm font-black" style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>
+                  {primaryAttention.action}
+                </span>
+              </Link>
 
-                        <span
-                          className="rounded-full border px-4 py-2 whitespace-nowrap text-xs font-black"
-                          style={{
-                            background: "var(--surface-strong)",
-                            borderColor: "var(--border)",
-                          }}
-                        >
-                          {summary?.business.verificationStatus === "approved"
-                            ? "Approved"
-                            : "Needs review"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div
-                      className="rounded-[1.5rem] border p-5"
-                      style={{
-                        background: "var(--surface-strong)",
-                        borderColor: "var(--border)",
-                      }}
-                    >
-                      <p
-                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.2em]"
-                        style={{ color: "var(--muted)" }}
-                      >
-                        Profile strength
-                      </p>
-
-                      <div className="mt-4 flex items-end justify-between gap-4">
-                        <strong className="text-5xl font-black tracking-[-0.06em]">
-                          {profileStrength.percent}%
-                        </strong>
-                        <span
-                          className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black"
-                          style={{
-                            borderColor: "var(--border)",
-                            color: "var(--accent)",
-                          }}
-                        >
-                          {profileStrength.done}/{profileStrength.total} done
-                        </span>
-                      </div>
-
-                      <div
-                        className="mt-4 h-3 overflow-hidden rounded-full"
-                        style={{ background: "var(--border)" }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${profileStrength.percent}%`,
-                            background: "var(--accent)",
-                          }}
-                        />
-                      </div>
-
-                      <p
-                        className="mt-4 text-sm font-semibold leading-6"
-                        style={{ color: "var(--muted)" }}
-                      >
-                        Complete profile, photos, contacts, description, and menu
-                        to make customer decisions easier.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
-                  <MetricCard
-                    label="Profile views"
-                    value={overview.profileViews}
-                    text="People who opened your business page."
-                    href="/business-dashboard"
-                  />
-                  <MetricCard
-                    label="New bookings"
-                    value={overview.newBookings}
-                    text="Requests waiting for your reply."
-                    href="/business-bookings"
-                  />
-                  <MetricCard
-                    label="Reviews"
-                    value={overview.reviews}
-                    text="Customer feedback on your business."
-                    href="/business-reviews"
-                  />
-                  <MetricCard
-                    label="Comments"
-                    value={overview.comments}
-                    text="Conversations under customer reviews."
-                    href="/business-reviews"
-                  />
-                  <MetricCard
-                    label="Menu items"
-                    value={overview.menuItems}
-                    text="What customers can order or ask about."
-                    href="/business-menu"
-                  />
-                  <MetricCard
-                    label="Subscribers"
-                    value={overview.subscribers}
-                    text="People following business updates."
-                    href="/business-subscribers"
-                  />
-                </div>
-
-                <div
-                  className="rounded-[2rem] border p-5 sm:p-6"
-                  style={{
-                    background: "var(--surface)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <p
-                        className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
-                        style={{ color: "var(--accent)" }}
-                      >
-                        Needs attention
-                      </p>
-                      <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-                        Fix what blocks customers from choosing you.
-                      </h2>
-                    </div>
-
+              {remainingAttention.length ? (
+                <div className="grid gap-2">
+                  {remainingAttention.map((item) => (
                     <Link
-                      href="/"
-                      className="inline-flex items-center justify-center rounded-full border px-5 py-3 whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
+                      key={item.title}
+                      href={item.href}
+                      prefetch
+                      className="flex flex-col gap-3 rounded-[1.1rem] border p-4 transition hover:scale-[1.005] sm:flex-row sm:items-center sm:justify-between"
                       style={{
+                        background: "var(--surface)",
                         borderColor: "var(--border)",
                         color: "var(--text)",
                       }}
                     >
-                      View public landing
-                    </Link>
-                  </div>
-
-                  <div className="mt-5 grid gap-3 min-[680px]:grid-cols-3">
-                    {attentionItems.slice(0, 3).map((item) => (
-                      <Link
-                        key={item.title}
-                        href={item.href}
-                        className="rounded-[1.5rem] border p-5 transition hover:scale-[1.01]"
-                        style={{
-                          background: "var(--surface-strong)",
-                          borderColor: "var(--border)",
-                          color: "var(--text)",
-                        }}
-                      >
+                      <span className="min-w-0">
+                        <span className="block font-black">{item.title}</span>
                         <span
-                          className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black"
-                          style={{
-                            borderColor: "var(--border)",
-                            color: item.priority === "high" ? "var(--accent)" : "var(--muted)",
-                          }}
-                        >
-                          {item.action}
-                        </span>
-
-                        <h3 className="mt-5 text-xl font-black tracking-[-0.04em]">
-                          {item.title}
-                        </h3>
-
-                        <p
-                          className="mt-3 text-sm font-semibold leading-6"
+                          className="mt-1 block text-sm font-semibold leading-5"
                           style={{ color: "var(--muted)" }}
                         >
                           {item.text}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div
-                  className="rounded-[2rem] border p-5 sm:p-6"
-                  style={{
-                    background: "var(--surface)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <p
-                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
-                    style={{ color: "var(--accent)" }}
-                  >
-                    Growth actions
-                  </p>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    {[
-                      ["Improve profile", "/business-profile"],
-                      ["Add menu", "/business-menu"],
-                      ["Reply bookings", "/business-bookings"],
-                      ["Check reviews", "/business-reviews"],
-                    ].map(([label, href]) => (
-                      <Link
-                        key={label}
-                        href={href}
-                        className="rounded-[1.15rem] border p-3 whitespace-nowrap text-sm font-black transition hover:scale-[1.01] sm:rounded-[1.25rem] sm:p-4"
-                        style={{
-                          background: "var(--surface-strong)",
-                          borderColor: "var(--border)",
-                          color: "var(--text)",
-                        }}
-                      >
-                        {label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              <aside className="grid gap-5">
-                <section
-                  className="rounded-[2rem] border p-5 sm:p-6"
-                  style={{
-                    background: "var(--surface)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <p
-                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
-                    style={{ color: "var(--accent)" }}
-                  >
-                    Customer activity
-                  </p>
-
-                  <h2 className="mt-3 text-2xl font-black tracking-[-0.04em]">
-                    {overview.newBookings > 0
-                      ? "New requests need your reply."
-                      : "No new customer request yet."}
-                  </h2>
-
-                  <p
-                    className="mt-3 text-sm font-semibold leading-6"
-                    style={{ color: "var(--muted)" }}
-                  >
-                    This area will help owners respond faster to people who view,
-                    book, review, comment, or follow the business.
-                  </p>
-
-                  <div className="mt-5 grid gap-2">
-                    {[
-                      ["New bookings", overview.newBookings, "/business-bookings"],
-                      ["Reviews", overview.reviews, "/business-reviews"],
-                      ["Comments", overview.comments, "/business-reviews"],
-                      ["Subscribers", overview.subscribers, "/business-subscribers"],
-                    ].map(([label, value, href]) => (
-                      <Link
-                        key={label}
-                        href={String(href)}
-                        className="flex items-center justify-between rounded-full border px-4 py-3 whitespace-nowrap text-sm font-black"
-                        style={{
-                          background: "var(--surface-strong)",
-                          borderColor: "var(--border)",
-                          color: "var(--text)",
-                        }}
-                      >
-                        <span>{label}</span>
-                        <span style={{ color: "var(--muted)" }}>
-                          {formatNumber(Number(value))}
                         </span>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
+                      </span>
+                      <span className="whitespace-nowrap text-xs font-black" style={{ color: "var(--accent)" }}>
+                        {item.action}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div
+              className="mt-5 rounded-[1.5rem] border p-5 sm:p-6"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <p className="text-sm font-semibold leading-6" style={{ color: "var(--muted)" }}>
+                There are no new requests or setup issues in the current business summary.
+              </p>
+            </div>
+          )}
 
-                <section
-                  className="rounded-[2rem] border p-5 sm:p-6"
-                  style={{
-                    background: "var(--surface)",
-                    borderColor: "var(--border)",
-                  }}
+          <div
+            className="mt-5 border-t pt-5"
+            style={{
+              borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
+            }}
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p
+                  className="text-xs font-black uppercase tracking-[0.22em]"
+                  style={{ color: "var(--accent)" }}
                 >
-                  <p
-                    className="whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]"
-                    style={{ color: "var(--accent)" }}
-                  >
-                    Menu readiness
-                  </p>
+                  Next best actions
+                </p>
+                <h3 className="mt-2 text-xl font-black tracking-[-0.04em]">
+                  {nextBestActions.length
+                    ? "Strengthen your business profile"
+                    : "Your business setup is complete"}
+                </h3>
+              </div>
+              <span
+                className="whitespace-nowrap text-xs font-black"
+                style={{ color: "var(--muted)" }}
+              >
+                {completedReadiness}/{readinessItems.length} complete
+              </span>
+            </div>
 
-                  <h2 className="mt-3 text-2xl font-black tracking-[-0.04em]">
-                    {overview.menuItems > 0
-                      ? `${formatNumber(overview.menuItems)} item${
-                          overview.menuItems === 1 ? "" : "s"
-                        } listed.`
-                      : "No menu item yet."}
-                  </h2>
-
-                  <p
-                    className="mt-3 text-sm font-semibold leading-6"
-                    style={{ color: "var(--muted)" }}
-                  >
-                    Menu is not only for restaurants. It can list meals, rooms,
-                    services, offers, experiences, or anything customers need to
-                    choose faster.
-                  </p>
-
+            {nextBestActions.length ? (
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {nextBestActions.map((item) => (
                   <Link
-                    href="/business-menu"
-                    className="mt-5 inline-flex w-full items-center justify-center rounded-full px-5 py-3 whitespace-nowrap text-sm font-black transition hover:scale-[1.01]"
+                    key={item.label}
+                    href={item.href}
+                    prefetch
+                    className="flex items-center justify-between gap-3 rounded-[0.9rem] border px-3 py-3 text-sm font-black transition hover:scale-[1.005]"
                     style={{
-                      background: "var(--accent)",
-                      color: "var(--accent-contrast)",
+                      background: "var(--surface)",
+                      borderColor: "var(--border)",
+                      color: "var(--text)",
                     }}
                   >
-                    Manage menu
+                    <span>{item.label}</span>
+                    <span
+                      className="whitespace-nowrap text-xs"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      Add
+                    </span>
                   </Link>
-                </section>
-              </aside>
-                </div>
-        </>
-      )}
-    </>
+                ))}
+              </div>
+            ) : (
+              <p
+                className="mt-3 text-sm font-semibold leading-6"
+                style={{ color: "var(--muted)" }}
+              >
+                Your key business details and customer information are in place.
+              </p>
+            )}
+          </div>
+          </div>
+
+          <div className="grid gap-5 xl:col-span-5">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p
+                className="text-xs font-black uppercase tracking-[0.22em]"
+                style={{ color: "var(--accent)" }}
+              >
+                Business activity
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+                Recorded activity
+              </h2>
+            </div>
+            <p className="text-right text-xs font-bold" style={{ color: "var(--muted)" }}>
+              All-time totals
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ActivityCard
+              label="New requests"
+              value={summary.overview.newBookings}
+              detail={
+                hasNewRequests
+                  ? "Waiting for a response"
+                  : "Nothing waiting for a response"
+              }
+              action="Review requests"
+              href="/business-bookings"
+              urgent={hasNewRequests}
+            />
+            <ActivityCard
+              label="Profile views"
+              value={summary.overview.profileViews}
+              detail="Recorded business page visits"
+              action="Improve profile"
+              href="/business-profile"
+            />
+            <ActivityCard
+              label="Reviews"
+              value={summary.overview.reviews}
+              detail={`${formatNumber(summary.overview.comments)} review comment${summary.overview.comments === 1 ? "" : "s"}`}
+              action="Read reviews"
+              href="/business-reviews"
+            />
+            <ActivityCard
+              label="Subscribers"
+              value={summary.overview.subscribers}
+              detail="Active followers of updates"
+              action="View subscribers"
+              href="/business-subscribers"
+            />
+          </div>
+
+          <div
+            className="border-t pt-5"
+            style={{
+              borderColor: "color-mix(in srgb, var(--border) 60%, transparent)",
+            }}
+          >
+            <div className="flex items-end justify-between gap-3">
+              <div>
+            <p
+              className="text-xs font-black uppercase tracking-[0.22em]"
+              style={{ color: "var(--accent)" }}
+            >
+              Business readiness
+            </p>
+            <div className="mt-3 flex items-end gap-3">
+              <strong className="text-3xl font-black tracking-[-0.06em]">
+                {readinessPercent}%
+              </strong>
+              <span
+                className="pb-1 whitespace-nowrap text-xs font-black"
+                style={{ color: "var(--muted)" }}
+              >
+                {completedReadiness}/{readinessItems.length} complete
+              </span>
+            </div>
+              </div>
+              <Link
+                href="/business-profile"
+                prefetch
+                className="rounded-full border px-4 py-2.5 whitespace-nowrap text-xs font-black"
+                style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              >
+                Improve profile
+              </Link>
+            </div>
+            <div
+              className="mt-3 h-2 overflow-hidden rounded-full"
+              style={{ background: "var(--border)" }}
+            >
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${readinessPercent}%`,
+                  background: "var(--accent)",
+                }}
+              />
+            </div>
+
+          </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

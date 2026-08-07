@@ -13,9 +13,12 @@ export default function BusinessAppLayout({
     <RequireAccess mode="business">
       <main
         className="min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-        style={{ color: "var(--text)" }}
+        style={{
+          backgroundColor: "color-mix(in srgb, var(--bg) 82%, transparent)",
+          color: "var(--text)",
+        }}
       >
-        <section className="relative mx-auto w-full max-w-7xl">
+        <section className="relative mx-auto w-full max-w-[90rem]">
           <nav
             className="flex flex-col gap-3 rounded-[1.5rem] border p-3 sm:flex-row sm:items-center sm:justify-between"
             style={{

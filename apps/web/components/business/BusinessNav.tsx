@@ -3,16 +3,26 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  BookOpen,
+  Calendar,
+  Camera,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  Store,
+  Users,
+} from "lucide-react";
 
 const businessLinks = [
-  { label: "Dashboard", href: "/business-dashboard" },
-  { label: "Profile", href: "/business-profile" },
-  { label: "Menu", href: "/business-menu" },
-  { label: "Bookings", href: "/business-bookings" },
-  { label: "Reviews", href: "/business-reviews" },
-  { label: "Subscribers", href: "/business-subscribers" },
-  { label: "Photos", href: "/business-photos" },
-  { label: "Settings", href: "/business-settings" },
+  { label: "Dashboard", href: "/business-dashboard", icon: LayoutDashboard },
+  { label: "Profile", href: "/business-profile", icon: Store },
+  { label: "Menu", href: "/business-menu", icon: BookOpen },
+  { label: "Bookings", href: "/business-bookings", icon: Calendar },
+  { label: "Reviews", href: "/business-reviews", icon: MessageSquare },
+  { label: "Subscribers", href: "/business-subscribers", icon: Users },
+  { label: "Photos", href: "/business-photos", icon: Camera },
+  { label: "Settings", href: "/business-settings", icon: Settings },
 ];
 
 export default function BusinessNav() {
@@ -95,6 +105,7 @@ export default function BusinessNav() {
       >
         {businessLinks.map((item) => {
           const active = pathname === item.href;
+          const Icon = item.icon;
 
           return (
             <Link
@@ -104,14 +115,15 @@ export default function BusinessNav() {
               onMouseEnter={() => router.prefetch(item.href)}
               onFocus={() => router.prefetch(item.href)}
               onClick={() => setMobileOpen(false)}
-              className="rounded-[1rem] px-3 py-3 text-center whitespace-nowrap text-xs font-black transition hover:scale-[1.01] sm:text-sm lg:text-left"
+              className="flex items-center justify-center gap-2 rounded-[1rem] px-3 py-3 whitespace-nowrap text-xs font-black transition hover:scale-[1.01] hover:bg-[var(--surface-strong)] sm:text-sm lg:justify-start"
               style={{
-                background: active ? "var(--accent)" : "var(--surface-strong)",
+                background: active ? "var(--accent)" : "transparent",
                 color: active ? "var(--accent-contrast)" : "var(--text)",
-                border: active ? "1px solid transparent" : "1px solid var(--border)",
+                border: "1px solid transparent",
               }}
             >
-              {item.label}
+              <Icon className="h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+              <span>{item.label}</span>
             </Link>
           );
         })}
