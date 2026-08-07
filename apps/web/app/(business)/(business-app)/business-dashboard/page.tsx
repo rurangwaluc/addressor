@@ -432,14 +432,15 @@ export default function BusinessDashboardPage() {
             ["Review requests", "/business-bookings"],
             ["Check reviews", "/business-reviews"],
             ["Add photos", "/business-photos"],
-          ].map(([label, href]) => (
+          ].map(([label, href], index) => (
             <Link
               key={label}
               href={href}
               prefetch
               className="shrink-0 rounded-full px-3 py-2 whitespace-nowrap text-xs font-black transition-colors hover:bg-[var(--surface-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-sm"
               style={{
-                color: "var(--text)",
+                background: index === 0 ? "var(--accent)" : "transparent",
+                color: index === 0 ? "var(--accent-contrast)" : "var(--text)",
               }}
             >
               {label}
@@ -618,7 +619,7 @@ export default function BusinessDashboardPage() {
                       className="whitespace-nowrap text-xs"
                       style={{ color: "var(--accent)" }}
                     >
-                      Complete
+                      {item.complete ? "Complete" : "Add"}
                     </span>
                   </Link>
                 ))}
