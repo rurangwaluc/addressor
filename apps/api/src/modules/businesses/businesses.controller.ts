@@ -4,6 +4,7 @@ import { authService } from "../auth/auth.service.js";
 import { businessesService } from "./businesses.service.js";
 import {
   BusinessOnboardingSchema,
+  BusinessProfileImageUploadSchema,
   BusinessProfileUpdateSchema,
 } from "./businesses.validators.js";
 
@@ -81,6 +82,36 @@ export async function updateBusinessProfileHandler(
       access,
     }),
   );
+}
+
+export async function createBusinessProfileImageUploadHandler(
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  if (!req.user) throw new Error("Invalid token");
+
+  const params = req.params as { businessId?: string };
+  const businessId = params.businessId;
+
+  if (!businessId) {
+    throw new Error("Business id is required");
+  }
+
+  const body = BusinessProfileImageUploadSchema.parse(req.body);
+  const result = await businessesService.createProfileImageUpload(
+    req.user.id,
+    businessId,
+    body,
+    {
+      accountId: req.server.env.R2_ACCOUNT_ID,
+      accessKeyId: req.server.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: req.server.env.R2_SECRET_ACCESS_KEY,
+      bucket: req.server.env.R2_BUCKET,
+      publicUrl: req.server.env.R2_PUBLIC_URL,
+    },
+  );
+
+  return reply.send(okResponse(result));
 }
 
 export async function featuredBusinessesHandler(

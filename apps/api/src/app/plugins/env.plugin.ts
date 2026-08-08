@@ -2,6 +2,13 @@ import "dotenv/config";
 import fp from "fastify-plugin";
 import { z } from "zod";
 
+const optionalEnvString = (schema: z.ZodString = z.string()) =>
+  z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    schema.optional(),
+  );
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(4000),
@@ -15,6 +22,12 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
 
   REDIS_URL: z.string().optional(),
+
+  R2_ACCOUNT_ID: optionalEnvString(z.string().min(1)),
+  R2_ACCESS_KEY_ID: optionalEnvString(z.string().min(1)),
+  R2_SECRET_ACCESS_KEY: optionalEnvString(z.string().min(1)),
+  R2_BUCKET: optionalEnvString(z.string().min(1)),
+  R2_PUBLIC_URL: optionalEnvString(z.string().url()),
 
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default("Addressor <onboarding@resend.dev>"),

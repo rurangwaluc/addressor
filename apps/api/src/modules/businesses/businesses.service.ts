@@ -14,8 +14,10 @@ import {
 } from "../../db/schema/businesses.schema.js";
 import type {
   BusinessOnboardingSchemaType,
+  BusinessProfileImageUploadSchemaType,
   BusinessProfileUpdateSchemaType,
 } from "./businesses.validators.js";
+import { createProfileImageUpload as createR2ProfileImageUpload } from "../../lib/storage/r2.js";
 import type {
   BusinessOnboardingResponse,
   BusinessOwnerSummaryResponse,
@@ -135,6 +137,28 @@ async function countBusinessRowsByStatus(
 }
 
 export const businessesService = {
+  async createProfileImageUpload(
+    userId: string,
+    businessId: string,
+    payload: BusinessProfileImageUploadSchemaType,
+    r2: {
+      accountId?: string;
+      accessKeyId?: string;
+      secretAccessKey?: string;
+      bucket?: string;
+      publicUrl?: string;
+    },
+  ) {
+    await assertCanEditBusiness(userId, businessId);
+
+    return createR2ProfileImageUpload(r2, {
+      businessId,
+      purpose: payload.purpose,
+      contentType: payload.contentType,
+      size: payload.size,
+    });
+  },
+
   async completeOnboarding(
     ownerUserId: string,
     payload: BusinessOnboardingSchemaType,

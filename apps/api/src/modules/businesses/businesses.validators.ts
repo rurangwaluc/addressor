@@ -31,10 +31,35 @@ export const BusinessProfileUpdateSchema = BusinessOnboardingSchema.extend({
   id: z.string().uuid().optional(),
 });
 
+const profileImageLimits = {
+  cover: 8 * 1024 * 1024,
+  logo: 4 * 1024 * 1024,
+} as const;
+
+export const BusinessProfileImageUploadSchema = z
+  .object({
+    purpose: z.enum(["cover", "logo"]),
+    contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+    size: z.number().int().positive(),
+  })
+  .superRefine((value, context) => {
+    if (value.size > profileImageLimits[value.purpose]) {
+      context.addIssue({
+        code: "custom",
+        path: ["size"],
+        message: `${value.purpose === "cover" ? "Cover photo" : "Business logo"} is too large`,
+      });
+    }
+  });
+
 export type BusinessOnboardingSchemaType = z.infer<
   typeof BusinessOnboardingSchema
 >;
 
 export type BusinessProfileUpdateSchemaType = z.infer<
   typeof BusinessProfileUpdateSchema
+>;
+
+export type BusinessProfileImageUploadSchemaType = z.infer<
+  typeof BusinessProfileImageUploadSchema
 >;

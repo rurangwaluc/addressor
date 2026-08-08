@@ -1,13 +1,21 @@
 import { FastifyInstance } from "fastify";
 import { requireAuth } from "../../app/middleware/requireAuth.js";
 import { requireVerifiedUser } from "../../app/middleware/requireRole.js";
+import { createRateLimit } from "../../app/middleware/rateLimit.js";
 import {
   businessOwnerSummaryHandler,
   completeBusinessOnboardingHandler,
+  createBusinessProfileImageUploadHandler,
   featuredBusinessesHandler,
   myBusinessesHandler,
   updateBusinessProfileHandler,
 } from "./businesses.controller.js";
+
+const profileImageUploadRateLimit = createRateLimit({
+  name: "business:profile-image-upload",
+  maxRequests: 20,
+  windowMs: 15 * 60 * 1000,
+});
 
 export default async function businessesRoutes(fastify: FastifyInstance) {
   fastify.get("/featured", featuredBusinessesHandler);
@@ -42,5 +50,17 @@ export default async function businessesRoutes(fastify: FastifyInstance) {
       preHandler: [requireAuth, requireVerifiedUser()],
     },
     updateBusinessProfileHandler,
+  );
+
+  fastify.post(
+    "/:businessId/profile-image-upload",
+    {
+      preHandler: [
+        requireAuth,
+        requireVerifiedUser(),
+        profileImageUploadRateLimit,
+      ],
+    },
+    createBusinessProfileImageUploadHandler,
   );
 }
