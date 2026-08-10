@@ -2,18 +2,19 @@ import { and, count, desc, eq, isNotNull, or } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
 import {
   businessBookingRequests,
-  businessMenuItems,
   businessProfileViews,
   businessReviewComments,
   businessReviews,
   businessUpdateSubscribers,
 } from "../../db/schema/business-account.schema.js";
+import { businessMenus } from "../../db/schema/uploaded-menu.schema.js";
 import {
   businesses,
   businessTeamMembers,
 } from "../../db/schema/businesses.schema.js";
 import type {
   BusinessOnboardingSchemaType,
+  BusinessProfileImageUpdateSchemaType,
   BusinessProfileImageUploadSchemaType,
   BusinessProfileUpdateSchemaType,
 } from "./businesses.validators.js";
@@ -85,7 +86,7 @@ function mapBusiness(row: typeof businesses.$inferSelect) {
   };
 }
 
-async function assertCanEditBusiness(userId: string, businessId: string) {
+export async function assertCanEditBusiness(userId: string, businessId: string) {
   const rows = await db
     .select({
       role: businessTeamMembers.role,
@@ -110,7 +111,7 @@ async function assertCanEditBusiness(userId: string, businessId: string) {
     membership.role !== "business_owner" &&
     membership.role !== "business_manager"
   ) {
-    throw new Error("Only owners and managers can edit this business");
+    throw new Error("Business access denied");
   }
 }
 
@@ -137,6 +138,34 @@ async function countBusinessRowsByStatus(
 }
 
 export const businessesService = {
+  async updateProfileImage(
+    userId: string,
+    businessId: string,
+    payload: BusinessProfileImageUpdateSchemaType,
+  ): Promise<BusinessOnboardingResponse> {
+    await assertCanEditBusiness(userId, businessId);
+
+    const imageUrl = cleanOptional(payload.imageUrl);
+    const updated = await db
+      .update(businesses)
+      .set(
+        payload.purpose === "cover"
+          ? { coverImageUrl: imageUrl, updatedAt: new Date() }
+          : { logoUrl: imageUrl, updatedAt: new Date() },
+      )
+      .where(eq(businesses.id, businessId))
+      .returning();
+    const business = updated[0];
+
+    if (!business) {
+      throw new Error("Business could not be updated");
+    }
+
+    return {
+      business: mapBusiness(business),
+    };
+  },
+
   async createProfileImageUpload(
     userId: string,
     businessId: string,
@@ -277,14 +306,14 @@ export const businessesService = {
       newBookings,
       reviews,
       comments,
-      menuItems,
+      publishedMenus,
       subscribers,
     ] = await Promise.all([
       countBusinessRows(businessProfileViews, businessId),
       countBusinessRowsByStatus(businessBookingRequests, businessId, "new"),
       countBusinessRows(businessReviews, businessId),
       countBusinessRows(businessReviewComments, businessId),
-      countBusinessRows(businessMenuItems, businessId),
+      countBusinessRowsByStatus(businessMenus, businessId, "published"),
       countBusinessRowsByStatus(businessUpdateSubscribers, businessId, "active"),
     ]);
 
@@ -310,7 +339,9 @@ export const businessesService = {
       });
     }
 
-    if (menuItems === 0) {
+    const hasPublishedMenu = publishedMenus > 0;
+
+    if (!hasPublishedMenu) {
       attention.push({
         title: "Add your menu",
         text: "Show what people can order, book, or ask about before they contact you.",
@@ -337,7 +368,7 @@ export const businessesService = {
         newBookings,
         reviews,
         comments,
-        menuItems,
+        hasPublishedMenu,
         subscribers,
       },
       attention,

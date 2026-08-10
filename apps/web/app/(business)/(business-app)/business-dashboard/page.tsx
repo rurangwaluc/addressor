@@ -37,7 +37,7 @@ type OwnerSummary = {
     newBookings: number;
     reviews: number;
     comments: number;
-    menuItems: number;
+    hasPublishedMenu: boolean;
     subscribers: number;
   };
   attention: Array<{
@@ -122,7 +122,7 @@ function buildReadinessItems(summary: OwnerSummary): ReadinessItem[] {
     },
     {
       label: "Products or services",
-      complete: overview.menuItems > 0,
+      complete: overview.hasPublishedMenu,
       href: "/business-menu",
     },
   ];

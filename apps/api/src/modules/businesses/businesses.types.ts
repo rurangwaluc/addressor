@@ -39,7 +39,7 @@ export type BusinessOwnerSummaryResponse = {
     newBookings: number;
     reviews: number;
     comments: number;
-    menuItems: number;
+    hasPublishedMenu: boolean;
     subscribers: number;
   };
   attention: Array<{
@@ -50,4 +50,3 @@ export type BusinessOwnerSummaryResponse = {
     priority: "high" | "medium" | "low";
   }>;
 };
-

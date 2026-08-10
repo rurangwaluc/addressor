@@ -19,6 +19,7 @@ import {
 } from "./business-account.schema.js";
 import { platformSettings } from "./platform.schema.js";
 import { auditLogs } from "./audit.schema.js";
+import { businessMenuFiles, businessMenus } from "./uploaded-menu.schema.js";
 
 export {
   authVerificationOtps,
@@ -41,6 +42,8 @@ export {
   businessUpdateSubscribers,
   platformSettings,
   auditLogs,
+  businessMenus,
+  businessMenuFiles,
 };
 
 export type Schema = {
@@ -64,4 +67,6 @@ export type Schema = {
   businessUpdateSubscribers: typeof businessUpdateSubscribers;
   platformSettings: typeof platformSettings;
   auditLogs: typeof auditLogs;
+  businessMenus: typeof businessMenus;
+  businessMenuFiles: typeof businessMenuFiles;
 };

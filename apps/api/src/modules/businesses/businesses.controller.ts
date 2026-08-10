@@ -4,6 +4,7 @@ import { authService } from "../auth/auth.service.js";
 import { businessesService } from "./businesses.service.js";
 import {
   BusinessOnboardingSchema,
+  BusinessProfileImageUpdateSchema,
   BusinessProfileImageUploadSchema,
   BusinessProfileUpdateSchema,
 } from "./businesses.validators.js";
@@ -109,6 +110,29 @@ export async function createBusinessProfileImageUploadHandler(
       bucket: req.server.env.R2_BUCKET,
       publicUrl: req.server.env.R2_PUBLIC_URL,
     },
+  );
+
+  return reply.send(okResponse(result));
+}
+
+export async function updateBusinessProfileImageHandler(
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  if (!req.user) throw new Error("Invalid token");
+
+  const params = req.params as { businessId?: string };
+  const businessId = params.businessId;
+
+  if (!businessId) {
+    throw new Error("Business id is required");
+  }
+
+  const body = BusinessProfileImageUpdateSchema.parse(req.body);
+  const result = await businessesService.updateProfileImage(
+    req.user.id,
+    businessId,
+    body,
   );
 
   return reply.send(okResponse(result));

@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const uploadExpiresInSeconds = 300;
@@ -13,13 +18,22 @@ const imageExtensions = {
 export type ProfileImagePurpose = "cover" | "logo";
 export type ProfileImageContentType = keyof typeof imageExtensions;
 
-type R2Config = {
+export type R2Config = {
   accountId?: string;
   accessKeyId?: string;
   secretAccessKey?: string;
   bucket?: string;
   publicUrl?: string;
 };
+
+const menuExtensions = {
+  "application/pdf": "pdf",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+} as const;
+
+export type MenuContentType = keyof typeof menuExtensions;
 
 type CreateProfileImageUploadInput = {
   businessId: string;
@@ -59,19 +73,23 @@ function requireR2Config(config: R2Config) {
   };
 }
 
+function createR2Client(config: ReturnType<typeof requireR2Config>) {
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+  });
+}
+
 export async function createProfileImageUpload(
   config: R2Config,
   input: CreateProfileImageUploadInput,
 ) {
   const configuredR2 = requireR2Config(config);
-  const client = new S3Client({
-    region: "auto",
-    endpoint: `https://${configuredR2.accountId}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: configuredR2.accessKeyId,
-      secretAccessKey: configuredR2.secretAccessKey,
-    },
-  });
+  const client = createR2Client(configuredR2);
   const extension = imageExtensions[input.contentType];
   const key = `businesses/${input.businessId}/profile/${input.purpose}/${randomUUID()}.${extension}`;
   const command = new PutObjectCommand({
@@ -90,4 +108,55 @@ export async function createProfileImageUpload(
     key,
     expiresInSeconds: uploadExpiresInSeconds,
   };
+}
+
+export async function createMenuFileUpload(
+  config: R2Config,
+  input: {
+    businessId: string;
+    revisionId: string;
+    contentType: MenuContentType;
+    size: number;
+  },
+) {
+  const configuredR2 = requireR2Config(config);
+  const key = `businesses/${input.businessId}/menus/${input.revisionId}/${randomUUID()}.${menuExtensions[input.contentType]}`;
+  const uploadUrl = await getSignedUrl(
+    createR2Client(configuredR2),
+    new PutObjectCommand({
+      Bucket: configuredR2.bucket,
+      Key: key,
+      ContentType: input.contentType,
+      ContentLength: input.size,
+    }),
+    { expiresIn: uploadExpiresInSeconds },
+  );
+
+  return {
+    uploadUrl,
+    publicUrl: joinPublicUrl(configuredR2.publicUrl, key),
+    key,
+    expiresInSeconds: uploadExpiresInSeconds,
+  };
+}
+
+export async function confirmMenuFileUpload(
+  config: R2Config,
+  input: { key: string; contentType: MenuContentType; size: number },
+) {
+  const configuredR2 = requireR2Config(config);
+  const result = await createR2Client(configuredR2).send(
+    new HeadObjectCommand({ Bucket: configuredR2.bucket, Key: input.key }),
+  );
+
+  if (result.ContentLength !== input.size || result.ContentType !== input.contentType) {
+    throw new Error("Uploaded menu file does not match the requested file");
+  }
+}
+
+export async function deleteMenuFile(config: R2Config, key: string) {
+  const configuredR2 = requireR2Config(config);
+  await createR2Client(configuredR2).send(
+    new DeleteObjectCommand({ Bucket: configuredR2.bucket, Key: key }),
+  );
 }

@@ -52,6 +52,11 @@ export const BusinessProfileImageUploadSchema = z
     }
   });
 
+export const BusinessProfileImageUpdateSchema = z.object({
+  purpose: z.enum(["cover", "logo"]),
+  imageUrl: z.string().trim().url("Enter a valid link").or(z.literal("")),
+});
+
 export type BusinessOnboardingSchemaType = z.infer<
   typeof BusinessOnboardingSchema
 >;
@@ -62,4 +67,8 @@ export type BusinessProfileUpdateSchemaType = z.infer<
 
 export type BusinessProfileImageUploadSchemaType = z.infer<
   typeof BusinessProfileImageUploadSchema
+>;
+
+export type BusinessProfileImageUpdateSchemaType = z.infer<
+  typeof BusinessProfileImageUpdateSchema
 >;

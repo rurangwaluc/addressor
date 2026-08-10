@@ -8,6 +8,7 @@ import {
   createBusinessProfileImageUploadHandler,
   featuredBusinessesHandler,
   myBusinessesHandler,
+  updateBusinessProfileImageHandler,
   updateBusinessProfileHandler,
 } from "./businesses.controller.js";
 
@@ -62,5 +63,13 @@ export default async function businessesRoutes(fastify: FastifyInstance) {
       ],
     },
     createBusinessProfileImageUploadHandler,
+  );
+
+  fastify.patch(
+    "/:businessId/profile-image",
+    {
+      preHandler: [requireAuth, requireVerifiedUser()],
+    },
+    updateBusinessProfileImageHandler,
   );
 }

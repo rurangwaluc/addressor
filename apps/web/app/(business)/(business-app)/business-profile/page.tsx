@@ -69,7 +69,7 @@ type ReadinessItem = {
 };
 
 type ImagePurpose = "cover" | "logo";
-type ImageUploadStatus = "idle" | "uploading" | "ready" | "error";
+type ImageUploadStatus = "idle" | "uploading" | "saving" | "removing" | "ready" | "error";
 
 type ImageUploadState = {
   status: ImageUploadStatus;
@@ -85,6 +85,11 @@ type ProfileImageUploadResponse = {
     key: string;
     expiresInSeconds: number;
   };
+};
+
+type ProfileImageUpdateResponse = {
+  ok: true;
+  data: { business: BusinessProfile };
 };
 
 const profileImageRules = {
@@ -266,6 +271,10 @@ function ImageUploadControl({
   const rules = profileImageRules[purpose];
   const imageUrl = upload.previewUrl || currentUrl;
   const inputId = `business-${purpose}-image`;
+  const busy =
+    upload.status === "uploading" ||
+    upload.status === "saving" ||
+    upload.status === "removing";
 
   return (
     <div className="min-w-0 rounded-[1rem] border p-3" style={{ background: "var(--surface-strong)", borderColor: "var(--border)" }}>
@@ -276,7 +285,7 @@ function ImageUploadControl({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black">{rules.label}</p>
           <p className="mt-1 text-sm font-semibold leading-5" style={{ color: upload.status === "error" ? "#fca5a5" : "var(--muted)" }} aria-live="polite">
-            {upload.status === "uploading" ? "Uploading image…" : upload.status === "ready" ? "Uploaded and ready to save" : upload.status === "error" ? upload.message : `JPG, PNG or WebP · up to ${purpose === "cover" ? "8" : "4"} MB`}
+            {upload.status === "uploading" ? "Uploading image…" : upload.status === "saving" ? "Saving image…" : upload.status === "removing" ? "Removing image…" : upload.status === "ready" ? "Uploaded and saved" : upload.status === "error" ? upload.message : `JPG, PNG or WebP · up to ${purpose === "cover" ? "8" : "4"} MB`}
           </p>
         </div>
       </div>
@@ -286,17 +295,17 @@ function ImageUploadControl({
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="sr-only"
-          disabled={upload.status === "uploading"}
+          disabled={busy}
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];
             event.currentTarget.value = "";
             if (file) onFile(file);
           }}
         />
-        <label htmlFor={inputId} className={`rounded-full px-3 py-2 whitespace-nowrap text-xs font-black ${upload.status === "uploading" ? "pointer-events-none opacity-50" : "cursor-pointer"}`} style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>
+        <label htmlFor={inputId} className={`rounded-full px-3 py-2 whitespace-nowrap text-xs font-black ${busy ? "pointer-events-none opacity-50" : "cursor-pointer"}`} style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>
           {imageUrl ? "Replace image" : "Choose image"}
         </label>
-        {imageUrl ? <button type="button" onClick={onClear} disabled={upload.status === "uploading"} className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black disabled:opacity-50" style={{ borderColor: "var(--border)", color: "var(--text)" }}>Remove</button> : null}
+        {imageUrl ? <button type="button" onClick={onClear} disabled={busy} className="rounded-full border px-3 py-2 whitespace-nowrap text-xs font-black disabled:opacity-50" style={{ borderColor: "var(--border)", color: "var(--text)" }}>Remove</button> : null}
       </div>
     </div>
   );
@@ -459,7 +468,10 @@ export default function BusinessProfilePage() {
     () => JSON.stringify(form) !== JSON.stringify(savedForm),
     [form, savedForm],
   );
-  const imageUploadInProgress = coverUpload.status === "uploading" || logoUpload.status === "uploading";
+  const imageUploadInProgress = [coverUpload.status, logoUpload.status].some(
+    (status) =>
+      status === "uploading" || status === "saving" || status === "removing",
+  );
 
   const readinessItems = useMemo<ReadinessItem[]>(
     () => [
@@ -490,12 +502,40 @@ export default function BusinessProfilePage() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  async function persistProfileImage(
+    purpose: ImagePurpose,
+    imageUrl: string,
+  ) {
+    if (!business) throw new Error("Business unavailable");
+
+    const field = purpose === "cover" ? "coverImageUrl" : "logoUrl";
+    const response = await apiRequest<ProfileImageUpdateResponse>(
+      `/businesses/${business.id}/profile-image`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ purpose, imageUrl }),
+      },
+    );
+    const persistedValue = response.data.business[field] ?? "";
+
+    setForm((current) => ({ ...current, [field]: persistedValue }));
+    setSavedForm((current) => ({ ...current, [field]: persistedValue }));
+    setBusiness((current) =>
+      current
+        ? {
+            ...current,
+            [field]: response.data.business[field],
+          }
+        : current,
+    );
+  }
+
   async function uploadProfileImage(purpose: ImagePurpose, file: File) {
     const rules = profileImageRules[purpose];
     const setUpload = purpose === "cover" ? setCoverUpload : setLogoUpload;
-    const field = purpose === "cover" ? "coverImageUrl" : "logoUrl";
     const requestId = uploadRequestIds.current[purpose] + 1;
     uploadRequestIds.current[purpose] = requestId;
+    let r2UploadComplete = false;
 
     if (!acceptedImageTypes.includes(file.type)) {
       setUpload({ status: "error", previewUrl: null, message: "Choose a JPG, PNG or WebP image." });
@@ -508,6 +548,8 @@ export default function BusinessProfilePage() {
     }
 
     const previewUrl = URL.createObjectURL(file);
+    setError("");
+    setNotice("");
     setUpload({ status: "uploading", previewUrl, message: "" });
 
     try {
@@ -531,27 +573,57 @@ export default function BusinessProfilePage() {
       });
 
       if (!uploadResponse.ok) throw new Error("Upload failed");
+      r2UploadComplete = true;
       if (uploadRequestIds.current[purpose] !== requestId) return;
 
-      updateField(field, response.data.publicUrl);
+      setUpload({ status: "saving", previewUrl, message: "" });
+      await persistProfileImage(purpose, response.data.publicUrl);
+      if (uploadRequestIds.current[purpose] !== requestId) return;
+
       setUpload({ status: "ready", previewUrl, message: "" });
+      setNotice(`${rules.label} uploaded and saved.`);
     } catch {
       if (uploadRequestIds.current[purpose] !== requestId) return;
-      setUpload({ status: "error", previewUrl, message: "Upload failed. Choose the image again." });
+      setUpload({
+        status: "error",
+        previewUrl,
+        message: r2UploadComplete
+          ? "Image uploaded but could not be saved. Try again."
+          : "Upload failed. Choose the image again.",
+      });
     }
   }
 
-  function clearProfileImage(purpose: ImagePurpose) {
-    uploadRequestIds.current[purpose] += 1;
+  async function clearProfileImage(purpose: ImagePurpose) {
+    const rules = profileImageRules[purpose];
+    const upload = purpose === "cover" ? coverUpload : logoUpload;
+    const setUpload = purpose === "cover" ? setCoverUpload : setLogoUpload;
+    const requestId = uploadRequestIds.current[purpose] + 1;
+    uploadRequestIds.current[purpose] = requestId;
 
-    if (purpose === "cover") {
-      setCoverUpload(emptyUploadState());
-      updateField("coverImageUrl", "");
-      return;
+    setError("");
+    setNotice("");
+    setUpload({
+      status: "removing",
+      previewUrl: upload.previewUrl,
+      message: "",
+    });
+
+    try {
+      await persistProfileImage(purpose, "");
+      if (uploadRequestIds.current[purpose] !== requestId) return;
+
+      setUpload(emptyUploadState());
+      setNotice(`${rules.label} removed.`);
+    } catch {
+      if (uploadRequestIds.current[purpose] !== requestId) return;
+
+      setUpload({
+        status: "error",
+        previewUrl: upload.previewUrl,
+        message: "Image could not be removed. Try again.",
+      });
     }
-
-    setLogoUpload(emptyUploadState());
-    updateField("logoUrl", "");
   }
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
@@ -651,7 +723,13 @@ export default function BusinessProfilePage() {
   const locationCompleteCount = [form.city, form.district, form.sector, form.addressLine].filter((value) => value.trim()).length;
   const contactCompleteCount = [form.phone, form.whatsappNumber, form.email, form.websiteUrl].filter((value) => value.trim()).length;
   const detailsCompleteCount = [form.legalName, form.coverImageUrl, form.logoUrl].filter((value) => value.trim()).length;
-  const saveLabel = imageUploadInProgress ? "Uploading image…" : saving ? "Saving changes…" : error ? "Changes not saved" : isDirty ? "Unsaved changes" : "All changes saved";
+  const imageChangeLabel =
+    coverUpload.status === "removing" || logoUpload.status === "removing"
+      ? "Removing image…"
+      : coverUpload.status === "saving" || logoUpload.status === "saving"
+        ? "Saving image…"
+        : "Uploading image…";
+  const saveLabel = imageUploadInProgress ? imageChangeLabel : saving ? "Saving changes…" : error ? "Changes not saved" : isDirty ? "Unsaved changes" : "All changes saved";
   const coverPreviewUrl = coverUpload.previewUrl || form.coverImageUrl;
   const logoPreviewUrl = logoUpload.previewUrl || form.logoUrl;
 
@@ -714,7 +792,7 @@ export default function BusinessProfilePage() {
         {error ? <p className="rounded-[1rem] border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-black text-red-300">{error}</p> : null}
       </div>
 
-      <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-4">
+      <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_27rem] xl:items-start xl:gap-4">
         <form id="business-profile-form" onSubmit={saveProfile} className="grid min-w-0 gap-3">
           <datalist id="business-category-suggestions">{categorySuggestions.map((category) => <option key={category} value={category} />)}</datalist>
 
@@ -759,23 +837,64 @@ export default function BusinessProfilePage() {
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-3" style={{ background: "var(--surface-strong)", borderColor: "var(--border)" }}>
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: "var(--accent)" }}>Live public preview</p>
-                <p className="mt-0.5 text-sm font-bold leading-5" style={{ color: "var(--muted)" }}>{isDirty ? "Showing unsaved changes" : "What customers will see"}</p>
+                <p className="mt-0.5 text-sm font-bold leading-5" style={{ color: "var(--muted)" }}>What customers will see</p>
               </div>
               <span className="rounded-full border px-2.5 py-1.5 text-[0.72rem] font-black" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>{getStatusLabel(business.verificationStatus)}</span>
             </div>
-            <div className="relative min-h-40 sm:min-h-48 xl:min-h-52">
-              {coverPreviewUrl ? <img src={coverPreviewUrl} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <div className="absolute inset-0" style={{ background: "var(--surface-strong)" }} />}
-              {coverPreviewUrl ? <div className="absolute inset-0 bg-black/55" /> : null}
-              <div className="relative flex min-h-40 flex-col justify-end p-4 sm:min-h-48 xl:min-h-52">
-                <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-[0.9rem] border text-base font-black" style={{ background: "var(--surface)", borderColor: coverPreviewUrl ? "rgba(255,255,255,0.55)" : "var(--border)", color: "var(--text)" }}>{logoPreviewUrl ? <img src={logoPreviewUrl} alt="" className="h-full w-full object-cover" /> : form.displayName.slice(0, 1) || "A"}</div>
-                <p className={`mt-3 text-[0.72rem] font-black uppercase tracking-[0.16em] ${coverPreviewUrl ? "text-white/90" : ""}`} style={coverPreviewUrl ? undefined : { color: "var(--muted)" }}>{form.category || "Business type"}</p>
-                <h2 className={`mt-1 break-words text-xl font-black tracking-[-0.05em] ${coverPreviewUrl ? "text-white" : ""}`}>{form.displayName || "Business name"}</h2>
-                <p className={`mt-1.5 line-clamp-2 text-sm font-semibold leading-5 ${coverPreviewUrl ? "text-white/90" : ""}`} style={coverPreviewUrl ? undefined : { color: "var(--muted)" }}>{form.shortDescription || "Add a short description so customers know what to expect."}</p>
-              </div>
+            <div className="h-[176px] w-full overflow-hidden sm:h-[190px] xl:h-[240px]" style={{ background: "var(--surface-strong)" }}>
+              {coverPreviewUrl ? (
+                <img src={coverPreviewUrl} alt="" className="h-full w-full object-contain object-center" />
+              ) : (
+                <div className="grid h-full place-items-center px-4 text-center text-sm font-bold" style={{ color: "var(--muted)" }}>
+                  Cover photo
+                </div>
+              )}
             </div>
-            <div className="grid divide-y border-t" style={{ background: "var(--surface-strong)", borderColor: "var(--border)" }}>
-              <div className="grid min-w-0 gap-1.5 px-4 py-3"><p className="text-xs font-black" style={{ color: "var(--muted)" }}>Find us</p><p className="min-w-0 break-words text-base font-black leading-6 [overflow-wrap:anywhere]">{locationText || "Location not added"}</p></div>
-              <div className="grid min-w-0 gap-1.5 px-4 py-3"><p className="text-xs font-black" style={{ color: "var(--muted)" }}>Contact</p><p className="min-w-0 break-words text-base font-black leading-6 [overflow-wrap:anywhere]">{form.phone || form.whatsappNumber || "Contact not added"}</p></div>
+
+            <div className="relative min-w-0 px-4 pb-4 pt-11 sm:pt-12 xl:pt-14">
+              <div
+                className="absolute left-4 top-0 grid h-[72px] w-[72px] -translate-y-1/2 place-items-center overflow-hidden rounded-[1rem] border p-1.5 text-lg font-black sm:h-20 sm:w-20 sm:rounded-[1.15rem] sm:text-xl xl:h-24 xl:w-24 xl:rounded-[1.25rem] xl:p-2 xl:text-2xl"
+                style={{
+                  background: "var(--surface)",
+                  borderColor: "var(--border)",
+                  color: "var(--text)",
+                }}
+              >
+                {logoPreviewUrl ? (
+                  <img
+                    src={logoPreviewUrl}
+                    alt={`${form.displayName || "Business"} logo`}
+                    className="h-full w-full rounded-[0.7rem] object-contain"
+                  />
+                ) : (
+                  form.displayName.slice(0, 1) || "A"
+                )}
+              </div>
+
+              <p className="text-sm font-black" style={{ color: "var(--accent)" }}>
+                {form.category || "Business type"}
+              </p>
+              <h2 className="mt-1 min-w-0 break-words text-2xl font-black leading-7 tracking-[-0.045em] xl:text-3xl xl:leading-8">
+                {form.displayName || "Business name"}
+              </h2>
+              <p className="mt-2 min-w-0 break-words text-sm font-semibold leading-6 sm:text-base" style={{ color: "var(--muted)" }}>
+                {form.shortDescription || "Add a short description so customers know what to expect."}
+              </p>
+
+              <dl className="mt-4 grid min-w-0 divide-y border-y" style={{ borderColor: "var(--border)" }}>
+                <div className="min-w-0 py-3">
+                  <dt className="text-sm font-black" style={{ color: "var(--muted)" }}>Location</dt>
+                  <dd className="mt-1 min-w-0 break-words text-base font-black leading-6 [overflow-wrap:anywhere]">
+                    {locationText || "Location not added"}
+                  </dd>
+                </div>
+                <div className="min-w-0 py-3">
+                  <dt className="text-sm font-black" style={{ color: "var(--muted)" }}>Phone</dt>
+                  <dd className="mt-1 min-w-0 break-words text-base font-black leading-6 [overflow-wrap:anywhere]">
+                    {form.phone || "Phone not added"}
+                  </dd>
+                </div>
+              </dl>
             </div>
           </section>
 
@@ -799,7 +918,7 @@ export default function BusinessProfilePage() {
         </aside>
       </div>
 
-      {isDirty || saving || imageUploadInProgress ? <div className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-[1.25rem] border p-2.5 sm:hidden" style={{ background: "var(--surface)", borderColor: "var(--border)" }}><p className="min-w-0 truncate text-sm font-black">{imageUploadInProgress ? "Uploading image…" : saving ? "Saving changes…" : "Unsaved changes"}</p><button type="submit" form="business-profile-form" disabled={saving || imageUploadInProgress} className="rounded-full px-4 py-2.5 whitespace-nowrap text-sm font-black disabled:opacity-50" style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>{saving ? "Saving…" : "Save"}</button></div> : null}
+      {isDirty || saving || imageUploadInProgress ? <div className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-[1.25rem] border p-2.5 sm:hidden" style={{ background: "var(--surface)", borderColor: "var(--border)" }}><p className="min-w-0 truncate text-sm font-black">{imageUploadInProgress ? imageChangeLabel : saving ? "Saving changes…" : "Unsaved changes"}</p><button type="submit" form="business-profile-form" disabled={saving || imageUploadInProgress} className="rounded-full px-4 py-2.5 whitespace-nowrap text-sm font-black disabled:opacity-50" style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}>{saving ? "Saving…" : "Save"}</button></div> : null}
     </div>
   );
 }
