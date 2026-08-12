@@ -50,8 +50,8 @@ const acceptedTypes = [
   "image/webp",
 ];
 const imageTypes = ["image/jpeg", "image/png", "image/webp"];
-const minimumMenuImageWidth = 1200;
-const minimumMenuImageHeight = 1600;
+const minimumMenuImageWidth = 900;
+const minimumMenuImageHeight = 1200;
 const minimumMenuImageRatio = 0.6;
 const maximumMenuImageRatio = 0.85;
 const maximumMenuImageSize = 8 * 1024 * 1024;
@@ -104,7 +104,7 @@ async function validateMenuFile(file: File): Promise<RejectedMenuFile | null> {
     if (width < minimumMenuImageWidth || height < minimumMenuImageHeight) {
       return {
         name: file.name,
-        message: "This menu image is too small. Use an image at least 1200 × 1600 px.",
+        message: "This menu image is too small. Use an image at least 900 × 1200 px.",
       };
     }
 
@@ -210,7 +210,7 @@ function UploadDropZone({
         )}
       </p>
       <p className="mt-1.5 text-sm font-semibold leading-5" style={{ color: "var(--muted)" }}>
-        PDF, JPG, PNG or WebP · Images at least 1200 × 1600 px
+        PDF, JPG, PNG or WebP · Images at least 900 × 1200 px
       </p>
       <p className="mt-1 text-sm font-semibold leading-5" style={{ color: "var(--muted)" }}>
         Portrait menu images work best.
