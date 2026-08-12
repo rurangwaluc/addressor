@@ -5,6 +5,7 @@ import { dbPlugin } from "./app/plugins/db.plugin.js";
 import appRoutes from "./app/routes/index.js";
 import { apiError } from "./app/serializers/apiError.js";
 import { R2StorageNotConfiguredError } from "./lib/storage/r2.js";
+import { BookingDomainError } from "./modules/businessBookings/businessBookings.errors.js";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -99,6 +100,12 @@ export async function buildApp() {
       return reply
         .status(503)
         .send(apiError("IMAGE_UPLOAD_UNAVAILABLE", error.message));
+    }
+
+    if (error instanceof BookingDomainError) {
+      return reply
+        .status(error.statusCode)
+        .send(apiError(error.code, error.message));
     }
 
     request.log.error(error);

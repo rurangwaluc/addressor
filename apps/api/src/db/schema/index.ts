@@ -10,6 +10,7 @@ import { businesses, businessTeamMembers } from "./businesses.schema.js";
 import { businessBranches } from "./branches.schema.js";
 import {
   businessBookingRequests,
+  businessBookingSettings,
   businessMenuCategories,
   businessMenuItems,
   businessProfileViews,
@@ -37,6 +38,7 @@ export {
   businessReviews,
   businessReviewComments,
   businessBookingRequests,
+  businessBookingSettings,
   businessMenuCategories,
   businessMenuItems,
   businessUpdateSubscribers,
@@ -62,6 +64,7 @@ export type Schema = {
   businessReviews: typeof businessReviews;
   businessReviewComments: typeof businessReviewComments;
   businessBookingRequests: typeof businessBookingRequests;
+  businessBookingSettings: typeof businessBookingSettings;
   businessMenuCategories: typeof businessMenuCategories;
   businessMenuItems: typeof businessMenuItems;
   businessUpdateSubscribers: typeof businessUpdateSubscribers;

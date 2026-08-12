@@ -1,5 +1,7 @@
 import {
   boolean,
+  check,
+  index,
   integer,
   pgTable,
   text,
@@ -7,6 +9,7 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { businesses } from "./businesses.schema.js";
 import { users } from "./users.schema.js";
 
@@ -61,26 +64,74 @@ export const businessReviewComments = pgTable("business_review_comments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const businessBookingRequests = pgTable("business_booking_requests", {
-  id: uuid("id").defaultRandom().primaryKey(),
+export const businessBookingSettings = pgTable("business_booking_settings", {
   businessId: uuid("business_id")
+    .primaryKey()
     .notNull()
     .references(() => businesses.id, { onDelete: "cascade" }),
-  customerUserId: uuid("customer_user_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  customerName: text("customer_name").notNull(),
-  customerPhone: text("customer_phone"),
-  customerEmail: text("customer_email"),
-  requestType: text("request_type").notNull().default("booking"),
-  message: text("message"),
-  preferredDate: timestamp("preferred_date", { withTimezone: true }),
-  partySize: integer("party_size"),
-  status: text("status").notNull().default("new"),
-  ownerNote: text("owner_note"),
+  enabled: boolean("enabled").notNull().default(false),
+  bookingLabel: text("booking_label"),
+  instructions: text("instructions"),
+  minimumAdvanceMinutes: integer("minimum_advance_minutes"),
+  maximumAdvanceDays: integer("maximum_advance_days"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => ({
+  minimumAdvanceCheck: check(
+    "business_booking_settings_minimum_advance_check",
+    sql`${table.minimumAdvanceMinutes} is null or ${table.minimumAdvanceMinutes} between 0 and 525600`,
+  ),
+  maximumAdvanceCheck: check(
+    "business_booking_settings_maximum_advance_check",
+    sql`${table.maximumAdvanceDays} is null or ${table.maximumAdvanceDays} between 1 and 730`,
+  ),
+}));
+
+export const businessBookingRequests = pgTable(
+  "business_booking_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    businessId: uuid("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    customerUserId: uuid("customer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    customerName: text("customer_name").notNull(),
+    customerPhone: text("customer_phone"),
+    customerEmail: text("customer_email"),
+    requestType: text("request_type").notNull().default("booking"),
+    message: text("message"),
+    preferredDate: timestamp("preferred_date", { withTimezone: true }),
+    confirmedDate: timestamp("confirmed_date", { withTimezone: true }),
+    partySize: integer("party_size"),
+    status: text("status").notNull().default("new"),
+    ownerNote: text("owner_note"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    businessBookingStatusCheck: check(
+      "business_booking_requests_status_check",
+      sql`${table.status} in ('new', 'accepted', 'declined', 'cancelled', 'completed')`,
+    ),
+    businessBookingStatusIndex: index("business_booking_requests_business_status_idx").on(
+      table.businessId,
+      table.status,
+    ),
+    businessBookingPreferredDateIndex: index("business_booking_requests_business_preferred_date_idx").on(
+      table.businessId,
+      table.preferredDate,
+    ),
+    businessBookingConfirmedDateIndex: index("business_booking_requests_business_confirmed_date_idx").on(
+      table.businessId,
+      table.confirmedDate,
+    ),
+  }),
+);
 
 export const businessMenuCategories = pgTable("business_menu_categories", {
   id: uuid("id").defaultRandom().primaryKey(),
