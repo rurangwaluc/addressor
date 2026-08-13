@@ -21,6 +21,7 @@ import {
 import { platformSettings } from "./platform.schema.js";
 import { auditLogs } from "./audit.schema.js";
 import { businessMenuFiles, businessMenus } from "./uploaded-menu.schema.js";
+import { businessServices } from "./business-services.schema.js";
 
 export {
   authVerificationOtps,
@@ -47,6 +48,7 @@ export {
   auditLogs,
   businessMenus,
   businessMenuFiles,
+  businessServices,
 };
 
 export type Schema = {
@@ -74,4 +76,5 @@ export type Schema = {
   auditLogs: typeof auditLogs;
   businessMenus: typeof businessMenus;
   businessMenuFiles: typeof businessMenuFiles;
+  businessServices: typeof businessServices;
 };

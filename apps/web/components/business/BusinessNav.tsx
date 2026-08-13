@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
+  BriefcaseBusiness,
   Calendar,
   Camera,
   LayoutDashboard,
@@ -23,13 +24,15 @@ type BusinessNavItem = {
   href: string;
   icon: LucideIcon;
   capability?: keyof BusinessCapabilities;
+  showForLegacyCache?: boolean;
 };
 
 const businessLinks: BusinessNavItem[] = [
   { label: "Dashboard", href: "/business-dashboard", icon: LayoutDashboard },
   { label: "Profile", href: "/business-profile", icon: Store },
-  { label: "Menu", href: "/business-menu", icon: BookOpen, capability: "menu" },
-  { label: "Bookings", href: "/business-bookings", icon: Calendar, capability: "bookings" },
+  { label: "Menu", href: "/business-menu", icon: BookOpen, capability: "menu", showForLegacyCache: true },
+  { label: "Services", href: "/business-services", icon: BriefcaseBusiness, capability: "services" },
+  { label: "Bookings", href: "/business-bookings", icon: Calendar, capability: "bookings", showForLegacyCache: true },
   { label: "Reviews", href: "/business-reviews", icon: MessageSquare },
   { label: "Subscribers", href: "/business-subscribers", icon: Users },
   { label: "Photos", href: "/business-photos", icon: Camera },
@@ -45,7 +48,7 @@ export default function BusinessNav() {
   const visibleLinks = useMemo(
     () => businessLinks.filter((item) => {
       if (!item.capability) return true;
-      if (!activeBusiness?.capabilities) return true;
+      if (!activeBusiness?.capabilities) return item.showForLegacyCache === true;
       return activeBusiness.capabilities[item.capability];
     }),
     [activeBusiness],

@@ -34,6 +34,7 @@ const menuExtensions = {
 } as const;
 
 export type MenuContentType = keyof typeof menuExtensions;
+export type ServiceImageContentType = ProfileImageContentType;
 
 type CreateProfileImageUploadInput = {
   businessId: string;
@@ -155,6 +156,77 @@ export async function confirmMenuFileUpload(
 }
 
 export async function deleteMenuFile(config: R2Config, key: string) {
+  return deleteR2Object(config, key);
+}
+
+export async function createServiceImageUpload(
+  config: R2Config,
+  input: {
+    businessId: string;
+    serviceId: string;
+    contentType: ServiceImageContentType;
+    size: number;
+  },
+) {
+  const configuredR2 = requireR2Config(config);
+  const key = `businesses/${input.businessId}/services/${input.serviceId}/${randomUUID()}.${imageExtensions[input.contentType]}`;
+  const uploadUrl = await getSignedUrl(
+    createR2Client(configuredR2),
+    new PutObjectCommand({
+      Bucket: configuredR2.bucket,
+      Key: key,
+      ContentType: input.contentType,
+      ContentLength: input.size,
+    }),
+    { expiresIn: uploadExpiresInSeconds },
+  );
+
+  return {
+    uploadUrl,
+    publicUrl: joinPublicUrl(configuredR2.publicUrl, key),
+    key,
+    expiresInSeconds: uploadExpiresInSeconds,
+  };
+}
+
+export async function confirmServiceImageUpload(
+  config: R2Config,
+  input: {
+    businessId: string;
+    serviceId: string;
+    key: string;
+    contentType: ServiceImageContentType;
+    size: number;
+  },
+) {
+  const configuredR2 = requireR2Config(config);
+  const prefix = `businesses/${input.businessId}/services/${input.serviceId}/`;
+  const extension = imageExtensions[input.contentType];
+  const fileName = input.key.slice(prefix.length);
+
+  if (
+    !input.key.startsWith(prefix) ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|png|webp)$/i.test(fileName) ||
+    !fileName.endsWith(`.${extension}`)
+  ) {
+    return null;
+  }
+
+  const result = await createR2Client(configuredR2).send(
+    new HeadObjectCommand({ Bucket: configuredR2.bucket, Key: input.key }),
+  );
+
+  if (result.ContentLength !== input.size || result.ContentType !== input.contentType) {
+    return null;
+  }
+
+  return {
+    key: input.key,
+    publicUrl: joinPublicUrl(configuredR2.publicUrl, input.key),
+  };
+}
+
+export async function deleteR2Object(config: R2Config, key: string) {
   const configuredR2 = requireR2Config(config);
   await createR2Client(configuredR2).send(
     new DeleteObjectCommand({ Bucket: configuredR2.bucket, Key: key }),
