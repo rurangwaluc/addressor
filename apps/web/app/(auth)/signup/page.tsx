@@ -75,6 +75,7 @@ export default function SignupPage() {
         );
       }
 
+      localStorage.removeItem("addressorVerificationIntent");
       router.replace("/verify");
     } catch {
       setError("Signup could not be completed. Check your details and try again.");

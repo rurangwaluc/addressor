@@ -34,6 +34,7 @@ export default function VerifyPage() {
   const [emailOtp, setEmailOtp] = useState("");
   const [phoneOtp, setPhoneOtp] = useState("");
   const [token, setToken] = useState("");
+  const [verificationIntent, setVerificationIntent] = useState("");
   const [emailVerified, setEmailVerified] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [loadingType, setLoadingType] = useState<VerificationChannel | null>(null);
@@ -45,9 +46,20 @@ export default function VerifyPage() {
 
   useEffect(() => {
     setToken(localStorage.getItem("addressorVerificationToken") || "");
+    setVerificationIntent(localStorage.getItem("addressorVerificationIntent") || "");
     setEmailOtp(localStorage.getItem("addressorEmailOtp") || "");
     setPhoneOtp(localStorage.getItem("addressorPhoneOtp") || "");
   }, []);
+
+  function completeVerification() {
+    localStorage.removeItem("addressorVerificationToken");
+    localStorage.removeItem("addressorEmailOtp");
+    localStorage.removeItem("addressorPhoneOtp");
+
+    if (verificationIntent === "business") {
+      localStorage.removeItem("addressorVerificationIntent");
+    }
+  }
 
   function showMessage(nextMessage: string, tone: typeof messageTone = "neutral") {
     setMessage(nextMessage);
@@ -353,14 +365,17 @@ export default function VerifyPage() {
 
         {completed ? (
           <Link
-            href="/login"
+            href={verificationIntent === "business" ? "/business-onboarding" : "/login"}
+            onClick={completeVerification}
             className="block rounded-full px-5 py-3 text-center text-sm font-black transition hover:scale-[1.01]"
             style={{
               background: "var(--accent)",
               color: "var(--accent-contrast)",
             }}
           >
-            Continue to login
+            {verificationIntent === "business"
+              ? "Continue to business setup"
+              : "Continue to login"}
           </Link>
         ) : null}
 
