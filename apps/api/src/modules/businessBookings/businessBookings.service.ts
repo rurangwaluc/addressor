@@ -4,7 +4,7 @@ import {
   businessBookingRequests,
   businessBookingSettings,
 } from "../../db/schema/business-account.schema.js";
-import { assertCanEditBusiness } from "../businesses/businesses.service.js";
+import { assertBusinessCapability } from "../businessCapabilities/businessCapabilities.service.js";
 import {
   BookingDateRequiredError,
   BookingNotFoundError,
@@ -91,7 +91,7 @@ async function findBooking(businessId: string, bookingId: string) {
 
 export const businessBookingsService = {
   async getSettings(userId: string, businessId: string) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "bookings");
     const rows = await db
       .select()
       .from(businessBookingSettings)
@@ -116,7 +116,7 @@ export const businessBookingsService = {
     businessId: string,
     payload: BusinessBookingSettingsUpdate,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "bookings");
     const now = new Date();
     const values = {
       businessId,
@@ -141,7 +141,7 @@ export const businessBookingsService = {
   },
 
   async list(userId: string, businessId: string, query: BusinessBookingListQuery) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "bookings");
     const conditions: SQL[] = [eq(businessBookingRequests.businessId, businessId)];
     const effectiveDate = sql`coalesce(${businessBookingRequests.confirmedDate}, ${businessBookingRequests.preferredDate})`;
     const todayStart = new Date();
@@ -241,7 +241,7 @@ export const businessBookingsService = {
   },
 
   async getById(userId: string, businessId: string, bookingId: string) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "bookings");
     return { booking: mapBooking(await findBooking(businessId, bookingId)) };
   },
 
@@ -251,7 +251,7 @@ export const businessBookingsService = {
     bookingId: string,
     payload: BusinessBookingStatusUpdate,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "bookings");
     const booking = await findBooking(businessId, bookingId);
     const allowed = allowedTransitions[booking.status] ?? [];
 
@@ -306,7 +306,7 @@ export const businessBookingsService = {
     bookingId: string,
     payload: BusinessBookingNoteUpdate,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "bookings");
     await findBooking(businessId, bookingId);
     const updated = await db
       .update(businessBookingRequests)

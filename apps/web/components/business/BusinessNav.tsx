@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -12,13 +12,24 @@ import {
   Settings,
   Store,
   Users,
+  type LucideIcon,
 } from "lucide-react";
+import { getStoredAccessContext } from "@/lib/authSession";
+import { chooseActiveBusiness } from "@/lib/businessSession";
+import type { BusinessCapabilities } from "@/lib/authRedirect";
 
-const businessLinks = [
+type BusinessNavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  capability?: keyof BusinessCapabilities;
+};
+
+const businessLinks: BusinessNavItem[] = [
   { label: "Dashboard", href: "/business-dashboard", icon: LayoutDashboard },
   { label: "Profile", href: "/business-profile", icon: Store },
-  { label: "Menu", href: "/business-menu", icon: BookOpen },
-  { label: "Bookings", href: "/business-bookings", icon: Calendar },
+  { label: "Menu", href: "/business-menu", icon: BookOpen, capability: "menu" },
+  { label: "Bookings", href: "/business-bookings", icon: Calendar, capability: "bookings" },
   { label: "Reviews", href: "/business-reviews", icon: MessageSquare },
   { label: "Subscribers", href: "/business-subscribers", icon: Users },
   { label: "Photos", href: "/business-photos", icon: Camera },
@@ -29,15 +40,25 @@ export default function BusinessNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [access] = useState(() => getStoredAccessContext());
+  const activeBusiness = chooseActiveBusiness(access?.businesses);
+  const visibleLinks = useMemo(
+    () => businessLinks.filter((item) => {
+      if (!item.capability) return true;
+      if (!activeBusiness?.capabilities) return true;
+      return activeBusiness.capabilities[item.capability];
+    }),
+    [activeBusiness],
+  );
 
   const activeLink =
-    businessLinks.find((item) => pathname === item.href) ?? businessLinks[0];
+    visibleLinks.find((item) => pathname === item.href) ?? visibleLinks[0];
 
   useEffect(() => {
-    businessLinks.forEach((item) => {
+    visibleLinks.forEach((item) => {
       router.prefetch(item.href);
     });
-  }, [router]);
+  }, [router, visibleLinks]);
 
   return (
     <aside
@@ -104,7 +125,7 @@ export default function BusinessNav() {
         } lg:!grid`}
         aria-label="Business pages"
       >
-        {businessLinks.map((item) => {
+        {visibleLinks.map((item) => {
           const active = pathname === item.href;
           const Icon = item.icon;
 

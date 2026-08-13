@@ -9,6 +9,7 @@ import {
   authVerificationOtps,
 } from "../../db/schema/auth.schema.js";
 import {
+  businessCapabilities,
   businesses,
   businessTeamMembers,
 } from "../../db/schema/businesses.schema.js";
@@ -599,9 +600,18 @@ export const authService = {
         branchId: businessTeamMembers.branchId,
         role: businessTeamMembers.role,
         status: businessTeamMembers.status,
+        menu: businessCapabilities.menu,
+        services: businessCapabilities.services,
+        products: businessCapabilities.products,
+        bookings: businessCapabilities.bookings,
+        orders: businessCapabilities.orders,
       })
       .from(businessTeamMembers)
       .innerJoin(businesses, eq(businessTeamMembers.businessId, businesses.id))
+      .leftJoin(
+        businessCapabilities,
+        eq(businessTeamMembers.businessId, businessCapabilities.businessId),
+      )
       .where(eq(businessTeamMembers.userId, userId));
 
     const activeBusinesses: AuthBusinessAccessItem[] = businessRows
@@ -614,6 +624,13 @@ export const authService = {
         branchId: row.branchId,
         role: row.role as BusinessRoleKey,
         status: row.status,
+        capabilities: {
+          menu: row.menu ?? false,
+          services: row.services ?? false,
+          products: row.products ?? false,
+          bookings: row.bookings ?? false,
+          orders: row.orders ?? false,
+        },
       }));
 
     const rolesList: AuthRoleItem[] = [];

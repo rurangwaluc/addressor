@@ -64,6 +64,13 @@ export type AuthBusinessAccessItem = {
   branchId: string | null;
   role: BusinessRoleKey;
   status: string;
+  capabilities: {
+    menu: boolean;
+    services: boolean;
+    products: boolean;
+    bookings: boolean;
+    orders: boolean;
+  };
 };
 
 export type AuthPlatformAccess = {

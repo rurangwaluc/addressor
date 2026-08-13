@@ -1,4 +1,5 @@
 import {
+  boolean,
   pgTable,
   text,
   timestamp,
@@ -39,6 +40,20 @@ export const businesses = pgTable("businesses", {
   logoUrl: text("logo_url"),
   coverImageUrl: text("cover_image_url"),
 
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const businessCapabilities = pgTable("business_capabilities", {
+  businessId: uuid("business_id")
+    .primaryKey()
+    .notNull()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  menu: boolean("menu").notNull().default(false),
+  services: boolean("services").notNull().default(false),
+  products: boolean("products").notNull().default(false),
+  bookings: boolean("bookings").notNull().default(false),
+  orders: boolean("orders").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

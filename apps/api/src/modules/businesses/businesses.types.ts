@@ -26,6 +26,13 @@ export type BusinessOnboardingResponse = {
 export type MyBusinessesResponse = {
   businesses: Array<
     BusinessOnboardingResponse["business"] & {
+      capabilities: {
+        menu: boolean;
+        services: boolean;
+        products: boolean;
+        bookings: boolean;
+        orders: boolean;
+      };
       role: string;
       teamStatus: string;
     }

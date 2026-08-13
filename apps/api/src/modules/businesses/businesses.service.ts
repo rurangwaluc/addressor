@@ -9,9 +9,11 @@ import {
 } from "../../db/schema/business-account.schema.js";
 import { businessMenus } from "../../db/schema/uploaded-menu.schema.js";
 import {
+  businessCapabilities,
   businesses,
   businessTeamMembers,
 } from "../../db/schema/businesses.schema.js";
+import { getDefaultBusinessCapabilities } from "../businessCapabilities/businessCapabilities.defaults.js";
 import type {
   BusinessOnboardingSchemaType,
   BusinessProfileImageUpdateSchemaType,
@@ -196,48 +198,51 @@ export const businessesService = {
     const legalName = cleanOptional(payload.legalName) ?? displayName;
     const slug = await createUniqueBusinessSlug(displayName);
 
-    const inserted = await db
-      .insert(businesses)
-      .values({
-        ownerUserId,
-        legalName,
-        displayName,
-        slug,
-        category: payload.category.trim(),
-        shortDescription: cleanOptional(payload.shortDescription),
-        phone: payload.phone.trim(),
-        email: cleanOptional(payload.email),
-        websiteUrl: cleanOptional(payload.websiteUrl),
-        whatsappNumber: cleanOptional(payload.whatsappNumber),
-        city: payload.city.trim(),
-        district: cleanOptional(payload.district),
-        sector: cleanOptional(payload.sector),
-        addressLine: cleanOptional(payload.addressLine),
-        onboardingStatus: "completed",
-        verificationStatus: "draft",
-        subscriptionStatus: "free",
-        logoUrl: cleanOptional(payload.logoUrl),
-        coverImageUrl: cleanOptional(payload.coverImageUrl),
-        updatedAt: new Date(),
-      })
-      .returning();
+    const category = payload.category.trim();
+    const business = await db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(businesses)
+        .values({
+          ownerUserId,
+          legalName,
+          displayName,
+          slug,
+          category,
+          shortDescription: cleanOptional(payload.shortDescription),
+          phone: payload.phone.trim(),
+          email: cleanOptional(payload.email),
+          websiteUrl: cleanOptional(payload.websiteUrl),
+          whatsappNumber: cleanOptional(payload.whatsappNumber),
+          city: payload.city.trim(),
+          district: cleanOptional(payload.district),
+          sector: cleanOptional(payload.sector),
+          addressLine: cleanOptional(payload.addressLine),
+          onboardingStatus: "completed",
+          verificationStatus: "draft",
+          subscriptionStatus: "free",
+          logoUrl: cleanOptional(payload.logoUrl),
+          coverImageUrl: cleanOptional(payload.coverImageUrl),
+          updatedAt: new Date(),
+        })
+        .returning();
+      const created = inserted[0];
 
-    const business = inserted[0];
+      if (!created) throw new Error("Business could not be created");
 
-    if (!business) {
-      throw new Error("Business could not be created");
-    }
-
-    await db
-      .insert(businessTeamMembers)
-      .values({
-        businessId: business.id,
+      await tx.insert(businessCapabilities).values({
+        businessId: created.id,
+        ...getDefaultBusinessCapabilities(category),
+      });
+      await tx.insert(businessTeamMembers).values({
+        businessId: created.id,
         userId: ownerUserId,
         role: "business_owner",
         status: "active",
         joinedAt: new Date(),
-      })
-      .onConflictDoNothing();
+      });
+
+      return created;
+    });
 
     return {
       business: mapBusiness(business),
@@ -248,16 +253,36 @@ export const businessesService = {
     const rows = await db
       .select({
         business: businesses,
+        capabilities: businessCapabilities,
         role: businessTeamMembers.role,
         teamStatus: businessTeamMembers.status,
       })
       .from(businessTeamMembers)
       .innerJoin(businesses, eq(businessTeamMembers.businessId, businesses.id))
+      .leftJoin(
+        businessCapabilities,
+        eq(businessTeamMembers.businessId, businessCapabilities.businessId),
+      )
       .where(eq(businessTeamMembers.userId, userId));
 
     return {
       businesses: rows.map((row) => ({
         ...mapBusiness(row.business),
+        capabilities: row.capabilities
+          ? {
+              menu: row.capabilities.menu,
+              services: row.capabilities.services,
+              products: row.capabilities.products,
+              bookings: row.capabilities.bookings,
+              orders: row.capabilities.orders,
+            }
+          : {
+              menu: false,
+              services: false,
+              products: false,
+              bookings: false,
+              orders: false,
+            },
         role: row.role,
         teamStatus: row.teamStatus,
       })),
@@ -301,6 +326,19 @@ export const businessesService = {
       throw new Error("Business was not found");
     }
 
+    const capabilityRows = await db
+      .select()
+      .from(businessCapabilities)
+      .where(eq(businessCapabilities.businessId, businessId))
+      .limit(1);
+    const capabilities = capabilityRows[0] ?? {
+      menu: false,
+      services: false,
+      products: false,
+      bookings: false,
+      orders: false,
+    };
+
     const [
       profileViews,
       newBookings,
@@ -310,10 +348,14 @@ export const businessesService = {
       subscribers,
     ] = await Promise.all([
       countBusinessRows(businessProfileViews, businessId),
-      countBusinessRowsByStatus(businessBookingRequests, businessId, "new"),
+      capabilities.bookings
+        ? countBusinessRowsByStatus(businessBookingRequests, businessId, "new")
+        : Promise.resolve(0),
       countBusinessRows(businessReviews, businessId),
       countBusinessRows(businessReviewComments, businessId),
-      countBusinessRowsByStatus(businessMenus, businessId, "published"),
+      capabilities.menu
+        ? countBusinessRowsByStatus(businessMenus, businessId, "published")
+        : Promise.resolve(0),
       countBusinessRowsByStatus(businessUpdateSubscribers, businessId, "active"),
     ]);
 
@@ -341,7 +383,7 @@ export const businessesService = {
 
     const hasPublishedMenu = publishedMenus > 0;
 
-    if (!hasPublishedMenu) {
+    if (capabilities.menu && !hasPublishedMenu) {
       attention.push({
         title: "Add your menu",
         text: "Show what people can order, book, or ask about before they contact you.",
@@ -351,7 +393,7 @@ export const businessesService = {
       });
     }
 
-    if (newBookings > 0) {
+    if (capabilities.bookings && newBookings > 0) {
       attention.push({
         title: "Check new booking requests",
         text: "Respond while customers are still ready to choose.",

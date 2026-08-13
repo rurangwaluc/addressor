@@ -19,6 +19,7 @@ export type AccessContext = {
     branchId: string | null;
     role: "business_owner" | "business_manager" | "business_staff";
     status: string;
+    capabilities?: BusinessCapabilities;
   }>;
   activeBusiness?: {
     businessId: string;
@@ -28,6 +29,7 @@ export type AccessContext = {
     branchId: string | null;
     role: "business_owner" | "business_manager" | "business_staff";
     status: string;
+    capabilities?: BusinessCapabilities;
   } | null;
   permissions?: string[];
   flags: {
@@ -37,6 +39,14 @@ export type AccessContext = {
     isBusinessUser: boolean;
     isBusinessOwner: boolean;
   };
+};
+
+export type BusinessCapabilities = {
+  menu: boolean;
+  services: boolean;
+  products: boolean;
+  bookings: boolean;
+  orders: boolean;
 };
 
 const SAFE_FALLBACK_PATH = "/welcome";

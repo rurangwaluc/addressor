@@ -10,7 +10,10 @@ import {
   deleteMenuFile,
   type R2Config,
 } from "../../lib/storage/r2.js";
-import { assertCanEditBusiness } from "../businesses/businesses.service.js";
+import {
+  assertBusinessCapability,
+  isBusinessCapabilityEnabled,
+} from "../businessCapabilities/businessCapabilities.service.js";
 import type {
   BusinessMenuReorderSchemaType,
   BusinessMenuUploadSchemaType,
@@ -67,7 +70,7 @@ async function findRevision(businessId: string, revisionId: string) {
 
 export const businessMenusService = {
   async getOwnerState(userId: string, businessId: string) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
 
     const menus = await db
       .select()
@@ -92,6 +95,9 @@ export const businessMenusService = {
   },
 
   async getPublished(businessId: string) {
+    if (!(await isBusinessCapabilityEnabled(businessId, "menu"))) {
+      return { menu: null };
+    }
     const rows = await db
       .select()
       .from(businessMenus)
@@ -107,7 +113,7 @@ export const businessMenusService = {
   },
 
   async createDraft(userId: string, businessId: string) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
 
     const existing = await db
       .select()
@@ -134,7 +140,7 @@ export const businessMenusService = {
     payload: BusinessMenuUploadSchemaType,
     r2: R2Config,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
     const revision = await findRevision(businessId, revisionId);
 
     if (!revision || revision.status !== "draft") {
@@ -188,7 +194,7 @@ export const businessMenusService = {
     fileId: string,
     r2: R2Config,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
     const revision = await findRevision(businessId, revisionId);
 
     if (!revision || revision.status !== "draft") {
@@ -230,7 +236,7 @@ export const businessMenusService = {
     fileId: string,
     r2: R2Config,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
     const revision = await findRevision(businessId, revisionId);
 
     if (!revision || revision.status !== "draft") {
@@ -260,7 +266,7 @@ export const businessMenusService = {
     revisionId: string,
     payload: BusinessMenuReorderSchemaType,
   ) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
     const updatedRevision = await db.transaction(async (tx) => {
       const now = new Date();
       const revisions = await tx
@@ -318,7 +324,7 @@ export const businessMenusService = {
   },
 
   async publish(userId: string, businessId: string, revisionId: string) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
 
     return db.transaction(async (tx) => {
       const revisions = await tx
@@ -367,7 +373,7 @@ export const businessMenusService = {
   },
 
   async unpublish(userId: string, businessId: string) {
-    await assertCanEditBusiness(userId, businessId);
+    await assertBusinessCapability(userId, businessId, "menu");
     const updated = await db
       .update(businessMenus)
       .set({ status: "unpublished", updatedAt: new Date() })

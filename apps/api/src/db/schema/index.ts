@@ -6,7 +6,7 @@ import {
 } from "./auth.schema.js";
 import { users, userProfiles } from "./users.schema.js";
 import { roles, userRoles } from "./roles.schema.js";
-import { businesses, businessTeamMembers } from "./businesses.schema.js";
+import { businesses, businessCapabilities, businessTeamMembers } from "./businesses.schema.js";
 import { businessBranches } from "./branches.schema.js";
 import {
   businessBookingRequests,
@@ -32,6 +32,7 @@ export {
   roles,
   userRoles,
   businesses,
+  businessCapabilities,
   businessTeamMembers,
   businessBranches,
   businessProfileViews,
@@ -58,6 +59,7 @@ export type Schema = {
   roles: typeof roles;
   userRoles: typeof userRoles;
   businesses: typeof businesses;
+  businessCapabilities: typeof businessCapabilities;
   businessTeamMembers: typeof businessTeamMembers;
   businessBranches: typeof businessBranches;
   businessProfileViews: typeof businessProfileViews;
