@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import RequireAccess from "@/components/auth/RequireAccess";
 import LogoutButton from "@/components/auth/LogoutButton";
-import BusinessNav from "@/components/business/BusinessNav";
 import { apiRequest } from "@/lib/api";
 import {
   getBusinessId,
+  getStoredActiveBusinessId,
   saveActiveBusinessId,
 } from "@/lib/businessSession";
 
@@ -60,6 +60,9 @@ function statusLabel(status: string) {
 export default function BusinessesPage() {
   const router = useRouter();
   const [businesses, setBusinesses] = useState<BusinessProfile[]>([]);
+  const [activeBusinessId, setActiveBusinessId] = useState(
+    () => getStoredActiveBusinessId(),
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -99,6 +102,7 @@ export default function BusinessesPage() {
     if (!businessId) return;
 
     saveActiveBusinessId(businessId);
+    setActiveBusinessId(businessId);
     router.push("/business-dashboard");
   }
 
@@ -157,8 +161,6 @@ export default function BusinessesPage() {
             </div>
           </nav>
 
-          <BusinessNav />
-
           <section
             className="mt-5 rounded-[2rem] border p-5 shadow-2xl sm:p-7"
             style={{
@@ -176,15 +178,14 @@ export default function BusinessesPage() {
                 </p>
 
                 <h1 className="mt-3 text-3xl font-black tracking-[-0.05em] sm:text-5xl">
-                  Manage your businesses.
+                  Choose a business.
                 </h1>
 
                 <p
                   className="mt-3 max-w-2xl text-sm font-semibold leading-7"
                   style={{ color: "var(--muted)" }}
                 >
-                  Choose the business you want to work on. Dashboard, profile,
-                  photos, hours, and settings will use the selected business.
+                  Select the business you want to manage. Addressor will use it across the business dashboard and tools.
                 </p>
               </div>
 
@@ -221,6 +222,8 @@ export default function BusinessesPage() {
             ) : (
               <div className="mt-6 grid gap-4 lg:grid-cols-2">
                 {businesses.map((business) => {
+                  const businessId = getBusinessId(business);
+                  const isActive = businessId === activeBusinessId;
                   const location = [
                     business.sector,
                     business.district,
@@ -235,7 +238,7 @@ export default function BusinessesPage() {
                       className="overflow-hidden rounded-[1.75rem] border"
                       style={{
                         background: "var(--surface-strong)",
-                        borderColor: "var(--border)",
+                        borderColor: isActive ? "var(--accent)" : "var(--border)",
                       }}
                     >
                       <div className="relative min-h-48">
@@ -266,9 +269,23 @@ export default function BusinessesPage() {
                               </h2>
                             </div>
 
-                            <span className="whitespace-nowrap rounded-full bg-white px-3 py-2 text-xs font-black text-[#263f66]">
-                              {roleLabel(business.role)}
-                            </span>
+                            <div className="flex shrink-0 flex-col items-end gap-2">
+                              {isActive ? (
+                                <span
+                                  className="whitespace-nowrap rounded-full px-3 py-2 text-xs font-black"
+                                  style={{
+                                    background: "var(--accent)",
+                                    color: "var(--accent-contrast)",
+                                  }}
+                                >
+                                  Current business
+                                </span>
+                              ) : null}
+
+                              <span className="whitespace-nowrap rounded-full bg-white px-3 py-2 text-xs font-black text-[#263f66]">
+                                {roleLabel(business.role)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -330,7 +347,7 @@ export default function BusinessesPage() {
                               color: "var(--accent-contrast)",
                             }}
                           >
-                            Manage this
+                            {isActive ? "Open dashboard" : "Switch to business"}
                           </button>
 
                           <Link

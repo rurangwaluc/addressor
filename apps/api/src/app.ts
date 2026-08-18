@@ -8,6 +8,7 @@ import { R2StorageNotConfiguredError } from "./lib/storage/r2.js";
 import { BookingDomainError } from "./modules/businessBookings/businessBookings.errors.js";
 import { BusinessCapabilityDisabledError } from "./modules/businessCapabilities/businessCapabilities.errors.js";
 import { BusinessServiceDomainError } from "./modules/businessServices/businessServices.errors.js";
+import { BusinessOrderDomainError } from "./modules/businessOrders/businessOrders.errors.js";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -117,6 +118,12 @@ export async function buildApp() {
     }
 
     if (error instanceof BusinessServiceDomainError) {
+      return reply
+        .status(error.statusCode)
+        .send(apiError(error.code, error.message));
+    }
+
+    if (error instanceof BusinessOrderDomainError) {
       return reply
         .status(error.statusCode)
         .send(apiError(error.code, error.message));

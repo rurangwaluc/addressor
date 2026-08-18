@@ -7,6 +7,7 @@ import businessMenusRoutes from "../../modules/businessMenus/businessMenus.route
 import businessBookingsRoutes from "../../modules/businessBookings/businessBookings.routes.js";
 import businessCapabilitiesRoutes from "../../modules/businessCapabilities/businessCapabilities.routes.js";
 import businessServicesRoutes from "../../modules/businessServices/businessServices.routes.js";
+import businessOrdersRoutes from "../../modules/businessOrders/businessOrders.routes.js";
 
 export default async function appRoutes(fastify: FastifyInstance) {
   await fastify.register(authRoutes, { prefix: "/auth" });
@@ -17,4 +18,5 @@ export default async function appRoutes(fastify: FastifyInstance) {
   await fastify.register(businessMenusRoutes, { prefix: "/businesses" });
   await fastify.register(businessBookingsRoutes, { prefix: "/businesses" });
   await fastify.register(businessServicesRoutes, { prefix: "/businesses" });
+  await fastify.register(businessOrdersRoutes, { prefix: "/businesses" });
 }

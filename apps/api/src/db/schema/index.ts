@@ -22,6 +22,11 @@ import { platformSettings } from "./platform.schema.js";
 import { auditLogs } from "./audit.schema.js";
 import { businessMenuFiles, businessMenus } from "./uploaded-menu.schema.js";
 import { businessServices } from "./business-services.schema.js";
+import {
+  businessOrderItems,
+  businessOrderRequests,
+  businessOrderSettings,
+} from "./business-orders.schema.js";
 
 export {
   authVerificationOtps,
@@ -49,6 +54,9 @@ export {
   businessMenus,
   businessMenuFiles,
   businessServices,
+  businessOrderSettings,
+  businessOrderRequests,
+  businessOrderItems,
 };
 
 export type Schema = {
@@ -77,4 +85,7 @@ export type Schema = {
   businessMenus: typeof businessMenus;
   businessMenuFiles: typeof businessMenuFiles;
   businessServices: typeof businessServices;
+  businessOrderSettings: typeof businessOrderSettings;
+  businessOrderRequests: typeof businessOrderRequests;
+  businessOrderItems: typeof businessOrderItems;
 };
