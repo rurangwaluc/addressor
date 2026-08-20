@@ -31,6 +31,7 @@ type ResendVerificationResponse = {
 type VerificationChannel = "email" | "phone";
 
 export default function VerifyPage() {
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
   const [emailOtp, setEmailOtp] = useState("");
   const [phoneOtp, setPhoneOtp] = useState("");
   const [token, setToken] = useState("");
@@ -45,6 +46,9 @@ export default function VerifyPage() {
   );
 
   useEffect(() => {
+    setRedirectTo(
+      new URLSearchParams(window.location.search).get("redirectTo"),
+    );
     setToken(localStorage.getItem("addressorVerificationToken") || "");
     setVerificationIntent(localStorage.getItem("addressorVerificationIntent") || "");
     setEmailOtp(localStorage.getItem("addressorEmailOtp") || "");
@@ -365,7 +369,13 @@ export default function VerifyPage() {
 
         {completed ? (
           <Link
-            href={verificationIntent === "business" ? "/business-onboarding" : "/login"}
+            href={
+              verificationIntent === "business"
+                ? "/business-onboarding"
+                : redirectTo
+                  ? `/login?redirectTo=${encodeURIComponent(redirectTo)}`
+                  : "/login"
+            }
             onClick={completeVerification}
             className="block rounded-full px-5 py-3 text-center text-sm font-black transition hover:scale-[1.01]"
             style={{
@@ -389,7 +399,11 @@ export default function VerifyPage() {
         >
           Already verified?{" "}
           <Link
-            href="/login"
+            href={
+              redirectTo
+                ? `/login?redirectTo=${encodeURIComponent(redirectTo)}`
+                : "/login"
+            }
             className="font-black transition hover:opacity-80"
             style={{ color: "var(--accent)" }}
           >

@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const PublicBusinessSlugParamsSchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(72)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid business slug"),
+});
+
 const optionalUrl = z
   .string()
   .trim()

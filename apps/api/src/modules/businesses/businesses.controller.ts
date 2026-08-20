@@ -4,10 +4,22 @@ import { authService } from "../auth/auth.service.js";
 import { businessesService } from "./businesses.service.js";
 import {
   BusinessOnboardingSchema,
+  PublicBusinessSlugParamsSchema,
   BusinessProfileImageUpdateSchema,
   BusinessProfileImageUploadSchema,
   BusinessProfileUpdateSchema,
 } from "./businesses.validators.js";
+
+export async function publicBusinessHandler(
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const { slug } = PublicBusinessSlugParamsSchema.parse(req.params);
+
+  const result = await businessesService.getPublicBusinessBySlug(slug);
+
+  return reply.send(okResponse(result));
+}
 
 export async function completeBusinessOnboardingHandler(
   req: FastifyRequest,

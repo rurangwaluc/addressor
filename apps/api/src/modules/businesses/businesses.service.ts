@@ -8,12 +8,14 @@ import {
   businessUpdateSubscribers,
 } from "../../db/schema/business-account.schema.js";
 import { businessMenus } from "../../db/schema/uploaded-menu.schema.js";
+import { businessOrderSettings } from "../../db/schema/business-orders.schema.js";
 import {
   businessCapabilities,
   businesses,
   businessTeamMembers,
 } from "../../db/schema/businesses.schema.js";
 import { getDefaultBusinessCapabilities } from "../businessCapabilities/businessCapabilities.defaults.js";
+import { PublicBusinessNotFoundError } from "./businesses.errors.js";
 import type {
   BusinessOnboardingSchemaType,
   BusinessProfileImageUpdateSchemaType,
@@ -61,6 +63,27 @@ async function createUniqueBusinessSlug(displayName: string) {
     slug = `${base}-${count}`;
     count += 1;
   }
+}
+
+function mapPublicBusiness(row: typeof businesses.$inferSelect) {
+  return {
+    id: row.id,
+    displayName: row.displayName,
+    slug: row.slug,
+    category: row.category,
+    shortDescription: row.shortDescription,
+    phone: row.phone,
+    email: row.email,
+    websiteUrl: row.websiteUrl,
+    whatsappNumber: row.whatsappNumber,
+    country: row.country,
+    city: row.city,
+    district: row.district,
+    sector: row.sector,
+    addressLine: row.addressLine,
+    logoUrl: row.logoUrl,
+    coverImageUrl: row.coverImageUrl,
+  };
 }
 
 function mapBusiness(row: typeof businesses.$inferSelect) {
@@ -140,6 +163,68 @@ async function countBusinessRowsByStatus(
 }
 
 export const businessesService = {
+  async getPublicBusinessBySlug(slug: string) {
+    const rows = await db
+      .select({
+        business: businesses,
+        capabilities: businessCapabilities,
+        orderSettings: businessOrderSettings,
+      })
+      .from(businesses)
+      .leftJoin(
+        businessCapabilities,
+        eq(businessCapabilities.businessId, businesses.id),
+      )
+      .leftJoin(
+        businessOrderSettings,
+        eq(businessOrderSettings.businessId, businesses.id),
+      )
+      .where(
+        and(
+          eq(businesses.slug, slug),
+          eq(businesses.onboardingStatus, "completed"),
+          eq(businesses.verificationStatus, "approved"),
+        ),
+      )
+      .limit(1);
+
+    const row = rows[0];
+
+    if (!row) {
+      throw new PublicBusinessNotFoundError();
+    }
+
+    const capabilities = row.capabilities
+      ? {
+          menu: row.capabilities.menu,
+          services: row.capabilities.services,
+          products: row.capabilities.products,
+          bookings: row.capabilities.bookings,
+          orders: row.capabilities.orders,
+        }
+      : {
+          menu: false,
+          services: false,
+          products: false,
+          bookings: false,
+          orders: false,
+        };
+
+    const orderingEnabled =
+      capabilities.orders && Boolean(row.orderSettings?.enabled);
+
+    return {
+      business: mapPublicBusiness(row.business),
+      capabilities,
+      ordering: {
+        enabled: orderingEnabled,
+        instructions: orderingEnabled
+          ? row.orderSettings?.instructions ?? null
+          : null,
+      },
+    };
+  },
+
   async updateProfileImage(
     userId: string,
     businessId: string,
@@ -296,6 +381,7 @@ export const businessesService = {
       .where(
         and(
           eq(businesses.onboardingStatus, "completed"),
+          eq(businesses.verificationStatus, "approved"),
           isNotNull(businesses.coverImageUrl),
           or(isNotNull(businesses.phone), isNotNull(businesses.whatsappNumber)),
         ),
@@ -304,7 +390,7 @@ export const businessesService = {
       .limit(6);
 
     return {
-      businesses: rows.map(mapBusiness),
+      businesses: rows.map(mapPublicBusiness),
     };
   },
 

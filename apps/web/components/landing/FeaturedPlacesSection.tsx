@@ -16,8 +16,6 @@ type FeaturedBusiness = {
   district: string | null;
   sector: string | null;
   addressLine: string | null;
-  verificationStatus: string;
-  onboardingStatus: string;
   coverImageUrl: string | null;
   logoUrl: string | null;
 };
@@ -52,10 +50,8 @@ function placeText(place: FeaturedBusiness) {
   );
 }
 
-function trustText(place: FeaturedBusiness) {
-  if (place.verificationStatus === "approved") return "Checked place";
-
-  return "Recently added";
+function trustText() {
+  return "Checked place";
 }
 
 function phoneLink(place: FeaturedBusiness) {
@@ -246,7 +242,7 @@ function FeaturedPlaceCard({ place, wide = false }: { place: FeaturedBusiness; w
             </span>
 
             <span className="whitespace-nowrap rounded-full bg-white px-3 py-2 text-xs font-black text-[#292929]">
-              {trustText(place)}
+              {trustText()}
             </span>
           </div>
 
@@ -277,7 +273,7 @@ function FeaturedPlaceCard({ place, wide = false }: { place: FeaturedBusiness; w
       >
         <div className="grid gap-2 min-[430px]:grid-cols-2">
           <Link
-            href="/login"
+            href={`/places/${place.slug}`}
             className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full bg-[#1ca8cb] px-4 py-3 text-sm font-black text-white transition hover:scale-[1.02]"
           >
             View place

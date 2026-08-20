@@ -7,6 +7,7 @@ import {
   completeBusinessOnboardingHandler,
   createBusinessProfileImageUploadHandler,
   featuredBusinessesHandler,
+  publicBusinessHandler,
   myBusinessesHandler,
   updateBusinessProfileImageHandler,
   updateBusinessProfileHandler,
@@ -20,6 +21,7 @@ const profileImageUploadRateLimit = createRateLimit({
 
 export default async function businessesRoutes(fastify: FastifyInstance) {
   fastify.get("/featured", featuredBusinessesHandler);
+  fastify.get("/public/:slug", publicBusinessHandler);
 
   fastify.post(
     "/onboarding",

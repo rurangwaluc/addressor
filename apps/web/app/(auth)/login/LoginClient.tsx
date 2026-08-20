@@ -302,7 +302,11 @@ export default function LoginClient() {
             <p>
               New to Addressor?{" "}
               <Link
-                href="/signup"
+                href={
+                  redirectTo
+                    ? `/signup?redirectTo=${encodeURIComponent(redirectTo)}`
+                    : "/signup"
+                }
                 className="font-black transition hover:opacity-80"
                 style={{ color: "var(--accent)" }}
               >

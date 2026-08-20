@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthShell from "@/components/AuthShell";
 import AsyncButton from "@/components/AsyncButton";
 import InputField from "@/components/InputField";
@@ -33,6 +33,13 @@ const steps = ["Create profile", "Verify access", "Start using"];
 
 export default function SignupPage() {
   const router = useRouter();
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRedirectTo(
+      new URLSearchParams(window.location.search).get("redirectTo"),
+    );
+  }, []);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -76,7 +83,11 @@ export default function SignupPage() {
       }
 
       localStorage.removeItem("addressorVerificationIntent");
-      router.replace("/verify");
+      router.replace(
+        redirectTo
+          ? `/verify?redirectTo=${encodeURIComponent(redirectTo)}`
+          : "/verify",
+      );
     } catch {
       setError("Signup could not be completed. Check your details and try again.");
     } finally {
@@ -187,7 +198,11 @@ export default function SignupPage() {
             <p>
               Already verified?{" "}
               <Link
-                href="/login"
+                href={
+                  redirectTo
+                    ? `/login?redirectTo=${encodeURIComponent(redirectTo)}`
+                    : "/login"
+                }
                 className="font-black transition hover:opacity-80"
                 style={{ color: "var(--accent)" }}
               >

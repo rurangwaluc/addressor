@@ -9,6 +9,7 @@ import { BookingDomainError } from "./modules/businessBookings/businessBookings.
 import { BusinessCapabilityDisabledError } from "./modules/businessCapabilities/businessCapabilities.errors.js";
 import { BusinessServiceDomainError } from "./modules/businessServices/businessServices.errors.js";
 import { BusinessOrderDomainError } from "./modules/businessOrders/businessOrders.errors.js";
+import { BusinessPublicDomainError } from "./modules/businesses/businesses.errors.js";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -124,6 +125,12 @@ export async function buildApp() {
     }
 
     if (error instanceof BusinessOrderDomainError) {
+      return reply
+        .status(error.statusCode)
+        .send(apiError(error.code, error.message));
+    }
+
+    if (error instanceof BusinessPublicDomainError) {
       return reply
         .status(error.statusCode)
         .send(apiError(error.code, error.message));

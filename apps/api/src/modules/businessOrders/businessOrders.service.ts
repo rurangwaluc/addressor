@@ -173,18 +173,41 @@ export const businessOrdersService = {
 
   async updateSettings(userId: string, businessId: string, payload: BusinessOrderSettingsUpdate) {
     await assertBusinessCapability(userId, businessId, "orders");
-    const values = {
-      businessId,
-      enabled: payload.enabled,
-      instructions: cleanOptionalText(payload.instructions),
-      updatedAt: new Date(),
-    };
+
+    const existingRows = await db
+      .select()
+      .from(businessOrderSettings)
+      .where(eq(businessOrderSettings.businessId, businessId))
+      .limit(1);
+
+    const existing = existingRows[0];
+    const enabled = payload.enabled ?? existing?.enabled ?? false;
+    const instructions =
+      payload.instructions !== undefined
+        ? cleanOptionalText(payload.instructions) ?? null
+        : existing?.instructions ?? null;
+    const updatedAt = new Date();
+
     const rows = await db
       .insert(businessOrderSettings)
-      .values(values)
-      .onConflictDoUpdate({ target: businessOrderSettings.businessId, set: values })
+      .values({
+        businessId,
+        enabled,
+        instructions,
+        updatedAt,
+      })
+      .onConflictDoUpdate({
+        target: businessOrderSettings.businessId,
+        set: {
+          enabled,
+          instructions,
+          updatedAt,
+        },
+      })
       .returning();
+
     if (!rows[0]) throw new Error("Order settings could not be updated");
+
     return rows[0];
   },
 
@@ -206,7 +229,7 @@ export const businessOrdersService = {
         .from(businessOrderRequests)
         .where(where)
         .orderBy(
-          query.view === "attention" ? asc(businessOrderRequests.createdAt) : desc(businessOrderRequests.updatedAt),
+          query.view === "attention" ? desc(businessOrderRequests.createdAt) : desc(businessOrderRequests.updatedAt),
         )
         .limit(query.limit)
         .offset((query.page - 1) * query.limit),
