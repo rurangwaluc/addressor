@@ -37,6 +37,7 @@ type PublicOrderActionProps = {
   businessName: string;
   slug: string;
   instructions: string | null;
+  embedded?: boolean;
 };
 
 const fulfillmentOptions: Array<{
@@ -94,6 +95,7 @@ export default function PublicOrderAction({
   businessName,
   slug,
   instructions,
+  embedded = false,
 }: PublicOrderActionProps) {
   const router = useRouter();
 
@@ -304,7 +306,7 @@ export default function PublicOrderAction({
       <div
         ref={primaryActionRef}
         id="order"
-        className="mt-5"
+        className={embedded ? "min-w-0" : "mt-5 min-w-0"}
       >
         <button
           type="button"

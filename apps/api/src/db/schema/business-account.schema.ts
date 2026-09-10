@@ -130,6 +130,10 @@ export const businessBookingRequests = pgTable(
       table.businessId,
       table.confirmedDate,
     ),
+    businessBookingCustomerCreatedIndex: index("business_booking_requests_customer_created_idx").on(
+      table.customerUserId,
+      table.createdAt,
+    ),
   }),
 );
 

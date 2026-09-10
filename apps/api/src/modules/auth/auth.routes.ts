@@ -5,6 +5,7 @@ import {
   loginHandler,
   logoutHandler,
   meHandler,
+  updateMeHandler,
   refreshSessionHandler,
   resendVerificationHandler,
   resetPasswordHandler,
@@ -53,6 +54,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get("/me", { preHandler: requireAuth }, meHandler);
+  fastify.patch("/me", { preHandler: requireAuth }, updateMeHandler);
   fastify.post("/logout", { preHandler: requireAuth }, logoutHandler);
 
   fastify.post(

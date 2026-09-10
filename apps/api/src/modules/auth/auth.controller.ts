@@ -8,6 +8,7 @@ import {
   ResendVerificationSchema,
   ResetPasswordSchema,
   SignUpSchema,
+  UpdateProfileSchema,
   VerifyEmailSchema,
   VerifyPhoneSchema,
 } from "./auth.validators.js";
@@ -49,6 +50,18 @@ export async function meHandler(req: FastifyRequest, reply: FastifyReply) {
   if (!req.user) throw new Error("Invalid token");
 
   const result = await authService.me(req.user.id);
+  return reply.send(okResponse(result));
+}
+
+export async function updateMeHandler(
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  if (!req.user) throw new Error("Invalid token");
+
+  const body = UpdateProfileSchema.parse(req.body);
+  const result = await authService.updateMe(req.user.id, body);
+
   return reply.send(okResponse(result));
 }
 

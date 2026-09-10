@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import PublicOrderAction from "@/components/places/PublicOrderAction";
+import PublicBookingAction from "@/components/places/PublicBookingAction";
 import PublicMenuGallery from "@/components/places/PublicMenuGallery";
 import { cache } from "react";
 import { notFound } from "next/navigation";
@@ -48,6 +49,13 @@ type PublicBusinessResponse = {
   data: {
     business: PublicBusiness;
     capabilities: Capabilities;
+    booking: {
+      enabled: boolean;
+      label: string | null;
+      instructions: string | null;
+      minimumAdvanceMinutes: number | null;
+      maximumAdvanceDays: number | null;
+    };
     ordering: {
       enabled: boolean;
       instructions: string | null;
@@ -294,7 +302,7 @@ export default async function PublicPlacePage({
     notFound();
   }
 
-  const { business, capabilities, ordering } = response.data;
+  const { business, capabilities, booking, ordering } = response.data;
 
   const [menuResult, servicesResult] = await Promise.allSettled([
     capabilities.menu
@@ -471,13 +479,47 @@ export default async function PublicPlacePage({
                 </p>
               ) : null}
 
-              {ordering.enabled ? (
-                <PublicOrderAction
-                  businessId={business.id}
-                  businessName={business.displayName}
-                  slug={business.slug}
-                  instructions={ordering.instructions}
-                />
+              {ordering.enabled || booking.enabled ? (
+                <div
+                  className={[
+                    "mt-5 grid min-w-0 gap-3",
+                    ordering.enabled && booking.enabled
+                      ? "sm:grid-cols-2"
+                      : "sm:max-w-[31rem]",
+                  ].join(" ")}
+                >
+                  {ordering.enabled ? (
+                    <PublicOrderAction
+                      businessId={business.id}
+                      businessName={business.displayName}
+                      slug={business.slug}
+                      instructions={ordering.instructions}
+                      embedded
+                    />
+                  ) : null}
+
+                  {booking.enabled ? (
+                    <PublicBookingAction
+                      businessId={business.id}
+                      businessName={business.displayName}
+                      slug={business.slug}
+                      label={booking.label}
+                      instructions={booking.instructions}
+                      minimumAdvanceMinutes={
+                        booking.minimumAdvanceMinutes
+                      }
+                      maximumAdvanceDays={booking.maximumAdvanceDays}
+                      services={services.map((service) => ({
+                        id: service.id,
+                        name: service.name,
+                        durationMinutes: service.durationMinutes,
+                      }))}
+                      primary={!ordering.enabled}
+                      embedded
+                      mobileStickyEnabled={!ordering.enabled}
+                    />
+                  ) : null}
+                </div>
               ) : null}
             </div>
 

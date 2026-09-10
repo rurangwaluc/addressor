@@ -29,3 +29,14 @@ export class OrderRequestsDisabledError extends BusinessOrderDomainError {
     this.name = "OrderRequestsDisabledError";
   }
 }
+
+export class OrderOwnBusinessRequestError extends BusinessOrderDomainError {
+  constructor() {
+    super(
+      "You cannot send an order request to your own business.",
+      "ORDER_OWN_BUSINESS_NOT_ALLOWED",
+      403,
+    );
+    this.name = "OrderOwnBusinessRequestError";
+  }
+}

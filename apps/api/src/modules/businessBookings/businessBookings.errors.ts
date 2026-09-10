@@ -23,6 +23,35 @@ export class BookingNotFoundError extends BookingDomainError {
   }
 }
 
+export class BookingRequestsDisabledError extends BookingDomainError {
+  constructor() {
+    super(
+      "This business is not accepting booking requests.",
+      "BOOKING_REQUESTS_DISABLED",
+      409,
+    );
+    this.name = "BookingRequestsDisabledError";
+  }
+}
+
+export class BookingDateOutsideRangeError extends BookingDomainError {
+  constructor(message: string) {
+    super(message, "BOOKING_DATE_OUTSIDE_RANGE", 400);
+    this.name = "BookingDateOutsideRangeError";
+  }
+}
+
+export class BookingServiceUnavailableError extends BookingDomainError {
+  constructor() {
+    super(
+      "This service is not available for booking.",
+      "BOOKING_SERVICE_UNAVAILABLE",
+      400,
+    );
+    this.name = "BookingServiceUnavailableError";
+  }
+}
+
 export class BookingDateRequiredError extends BookingDomainError {
   constructor() {
     super(
@@ -31,5 +60,16 @@ export class BookingDateRequiredError extends BookingDomainError {
       400,
     );
     this.name = "BookingDateRequiredError";
+  }
+}
+
+export class BookingOwnBusinessRequestError extends BookingDomainError {
+  constructor() {
+    super(
+      "You cannot send a booking request to your own business.",
+      "BOOKING_OWN_BUSINESS_NOT_ALLOWED",
+      403,
+    );
+    this.name = "BookingOwnBusinessRequestError";
   }
 }

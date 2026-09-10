@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { okResponse } from "../../app/serializers/apiResponse.js";
 import { businessBookingsService } from "./businessBookings.service.js";
 import {
+  BusinessBookingCreateSchema,
   BusinessBookingListQuerySchema,
   BusinessBookingNoteUpdateSchema,
   BusinessBookingParamsSchema,
@@ -13,6 +14,22 @@ import {
 function requireUser(request: FastifyRequest) {
   if (!request.user) throw new Error("Invalid token");
   return request.user;
+}
+
+export async function createCustomerBookingHandler(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const user = requireUser(request);
+  const { businessId } = BusinessBookingParamsSchema.parse(request.params);
+  const body = BusinessBookingCreateSchema.parse(request.body);
+  const result = await businessBookingsService.createCustomerBooking(
+    user,
+    businessId,
+    body,
+  );
+
+  return reply.status(201).send(okResponse(result));
 }
 
 export async function getBookingSettingsHandler(request: FastifyRequest, reply: FastifyReply) {

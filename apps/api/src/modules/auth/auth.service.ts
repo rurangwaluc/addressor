@@ -993,6 +993,115 @@ export const authService = {
     };
   },
 
+  async updateMe(
+    userId: string,
+    payload: {
+      fullName?: string;
+      phone?: string;
+    },
+  ) {
+    const rows = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const currentUser = rows[0];
+
+    if (!currentUser) {
+      throw new Error("Invalid user");
+    }
+
+    const updates: Partial<typeof users.$inferInsert> = {
+      updatedAt: new Date(),
+    };
+
+    let changed = false;
+    let fullNameChanged = false;
+    let phoneChanged = false;
+    let normalizedPhone = currentUser.phone;
+
+    if (
+      payload.fullName !== undefined &&
+      payload.fullName !== currentUser.fullName
+    ) {
+      updates.fullName = payload.fullName;
+      changed = true;
+      fullNameChanged = true;
+    }
+
+    if (payload.phone !== undefined) {
+      normalizedPhone = normalizeRwandaPhone(payload.phone);
+
+      if (normalizedPhone !== currentUser.phone) {
+        const existing = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.phone, normalizedPhone))
+          .limit(1);
+
+        if (existing[0] && existing[0].id !== userId) {
+          throw new Error("Email or phone already exists");
+        }
+
+        updates.phone = normalizedPhone;
+        updates.phoneVerified = false;
+
+        changed = true;
+        phoneChanged = true;
+      }
+    }
+
+    if (changed) {
+      await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, userId));
+
+      await logAuthAudit({
+        actorUserId: userId,
+        entityType: "user",
+        entityId: userId,
+        action: "auth.profile_updated",
+        metadata: {
+          fullNameChanged,
+          phoneChanged,
+        },
+      });
+    }
+
+    let phoneOtp: string | undefined;
+
+    if (phoneChanged && normalizedPhone) {
+      phoneOtp = generateOtp();
+
+      await createOtpRecord({
+        userId,
+        channel: "phone",
+        destination: normalizedPhone,
+        otp: phoneOtp,
+      });
+
+      await sendSmsOtp({
+        to: normalizedPhone,
+        otp: phoneOtp,
+      });
+    }
+
+    return {
+      user: await getAuthUserById(userId),
+      phoneVerificationRequired: phoneChanged,
+      devVerification:
+        phoneChanged &&
+        phoneOtp &&
+        process.env.NODE_ENV !== "production"
+          ? {
+              phoneOtp,
+            }
+          : undefined,
+    };
+  },
+
   async refreshSession(
     payload: RefreshSessionSchemaType,
     metadata: SessionMetadata = {},

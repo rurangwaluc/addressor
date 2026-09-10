@@ -2,6 +2,7 @@ import { and, count, desc, eq, isNotNull, or } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
 import {
   businessBookingRequests,
+  businessBookingSettings,
   businessProfileViews,
   businessReviewComments,
   businessReviews,
@@ -168,12 +169,17 @@ export const businessesService = {
       .select({
         business: businesses,
         capabilities: businessCapabilities,
+        bookingSettings: businessBookingSettings,
         orderSettings: businessOrderSettings,
       })
       .from(businesses)
       .leftJoin(
         businessCapabilities,
         eq(businessCapabilities.businessId, businesses.id),
+      )
+      .leftJoin(
+        businessBookingSettings,
+        eq(businessBookingSettings.businessId, businesses.id),
       )
       .leftJoin(
         businessOrderSettings,
@@ -210,12 +216,30 @@ export const businessesService = {
           orders: false,
         };
 
+    const bookingEnabled =
+      capabilities.bookings && Boolean(row.bookingSettings?.enabled);
+
     const orderingEnabled =
       capabilities.orders && Boolean(row.orderSettings?.enabled);
 
     return {
       business: mapPublicBusiness(row.business),
       capabilities,
+      booking: {
+        enabled: bookingEnabled,
+        label: bookingEnabled
+          ? row.bookingSettings?.bookingLabel ?? null
+          : null,
+        instructions: bookingEnabled
+          ? row.bookingSettings?.instructions ?? null
+          : null,
+        minimumAdvanceMinutes: bookingEnabled
+          ? row.bookingSettings?.minimumAdvanceMinutes ?? null
+          : null,
+        maximumAdvanceDays: bookingEnabled
+          ? row.bookingSettings?.maximumAdvanceDays ?? null
+          : null,
+      },
       ordering: {
         enabled: orderingEnabled,
         instructions: orderingEnabled

@@ -49,7 +49,7 @@ export type BusinessCapabilities = {
   orders: boolean;
 };
 
-const SAFE_FALLBACK_PATH = "/welcome";
+const SAFE_FALLBACK_PATH = "/account";
 const PLATFORM_HOME_PATH = "/platform";
 const BUSINESS_HOME_PATH = "/business-dashboard";
 

@@ -1,16 +1,26 @@
 import { and, asc, count, desc, eq, gte, inArray, lt, sql, type SQL } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
+import { businessAccessService } from "../businessAccess/businessAccess.service.js";
 import {
   businessBookingRequests,
   businessBookingSettings,
 } from "../../db/schema/business-account.schema.js";
-import { assertBusinessCapability } from "../businessCapabilities/businessCapabilities.service.js";
+import { businessServices } from "../../db/schema/business-services.schema.js";
 import {
+  assertBusinessCapability,
+  isBusinessCapabilityEnabled,
+} from "../businessCapabilities/businessCapabilities.service.js";
+import {
+  BookingDateOutsideRangeError,
   BookingDateRequiredError,
   BookingNotFoundError,
+  BookingOwnBusinessRequestError,
+  BookingRequestsDisabledError,
+  BookingServiceUnavailableError,
   BookingStatusConflictError,
 } from "./businessBookings.errors.js";
 import type {
+  BusinessBookingCreate,
   BusinessBookingListQuery,
   BusinessBookingNoteUpdate,
   BusinessBookingSettingsUpdate,
@@ -18,6 +28,13 @@ import type {
 } from "./businessBookings.validators.js";
 
 type BookingRow = typeof businessBookingRequests.$inferSelect;
+
+type BookingCustomer = {
+  id: string;
+  fullName: string;
+  phone: string | null;
+  email: string | null;
+};
 
 const allowedTransitions: Record<BookingRow["status"], readonly string[]> = {
   new: ["accepted", "declined"],
@@ -90,6 +107,122 @@ async function findBooking(businessId: string, bookingId: string) {
 }
 
 export const businessBookingsService = {
+  async createCustomerBooking(
+    user: BookingCustomer,
+    businessId: string,
+    payload: BusinessBookingCreate,
+  ) {
+    if (
+      await businessAccessService.isActiveBusinessMember(
+        user.id,
+        businessId,
+      )
+    ) {
+      throw new BookingOwnBusinessRequestError();
+    }
+
+    if (!(await isBusinessCapabilityEnabled(businessId, "bookings"))) {
+      throw new BookingRequestsDisabledError();
+    }
+
+    const settingsRows = await db
+      .select()
+      .from(businessBookingSettings)
+      .where(eq(businessBookingSettings.businessId, businessId))
+      .limit(1);
+
+    const settings = settingsRows[0];
+
+    if (!settings?.enabled) {
+      throw new BookingRequestsDisabledError();
+    }
+
+    const now = new Date();
+    const preferredDate = payload.preferredDate;
+
+    const minimumAdvanceMinutes = settings.minimumAdvanceMinutes ?? 0;
+    const earliestAllowed = new Date(
+      now.getTime() + minimumAdvanceMinutes * 60_000,
+    );
+
+    if (preferredDate.getTime() < earliestAllowed.getTime()) {
+      throw new BookingDateOutsideRangeError(
+        minimumAdvanceMinutes > 0
+          ? "Choose a later date and time that meets this business's minimum booking notice."
+          : "Choose a future date and time.",
+      );
+    }
+
+    if (settings.maximumAdvanceDays !== null) {
+      const latestAllowed = new Date(
+        now.getTime() + settings.maximumAdvanceDays * 24 * 60 * 60_000,
+      );
+
+      if (preferredDate.getTime() > latestAllowed.getTime()) {
+        throw new BookingDateOutsideRangeError(
+          "Choose a date within this business's booking window.",
+        );
+      }
+    }
+
+    let requestType =
+      cleanOptionalText(payload.requestType) ??
+      cleanOptionalText(settings.bookingLabel) ??
+      "Booking";
+
+    if (payload.serviceId) {
+      if (!(await isBusinessCapabilityEnabled(businessId, "services"))) {
+        throw new BookingServiceUnavailableError();
+      }
+
+      const serviceRows = await db
+        .select({
+          id: businessServices.id,
+          name: businessServices.name,
+        })
+        .from(businessServices)
+        .where(
+          and(
+            eq(businessServices.id, payload.serviceId),
+            eq(businessServices.businessId, businessId),
+            eq(businessServices.status, "active"),
+          ),
+        )
+        .limit(1);
+
+      const service = serviceRows[0];
+
+      if (!service) {
+        throw new BookingServiceUnavailableError();
+      }
+
+      requestType = service.name;
+    }
+
+    const inserted = await db
+      .insert(businessBookingRequests)
+      .values({
+        businessId,
+        customerUserId: user.id,
+        customerName: user.fullName,
+        customerPhone: user.phone,
+        customerEmail: user.email,
+        requestType,
+        message: cleanOptionalText(payload.message),
+        preferredDate,
+        partySize: payload.partySize ?? null,
+      })
+      .returning();
+
+    const booking = inserted[0];
+
+    if (!booking) {
+      throw new Error("Booking request could not be created");
+    }
+
+    return { booking: mapBooking(booking) };
+  },
+
   async getSettings(userId: string, businessId: string) {
     await assertBusinessCapability(userId, businessId, "bookings");
     const rows = await db
@@ -117,26 +250,67 @@ export const businessBookingsService = {
     payload: BusinessBookingSettingsUpdate,
   ) {
     await assertBusinessCapability(userId, businessId, "bookings");
-    const now = new Date();
-    const values = {
-      businessId,
-      enabled: payload.enabled,
-      bookingLabel: cleanOptionalText(payload.bookingLabel),
-      instructions: cleanOptionalText(payload.instructions),
-      minimumAdvanceMinutes: payload.minimumAdvanceMinutes,
-      maximumAdvanceDays: payload.maximumAdvanceDays,
-      updatedAt: now,
-    };
+
+    const existingRows = await db
+      .select()
+      .from(businessBookingSettings)
+      .where(eq(businessBookingSettings.businessId, businessId))
+      .limit(1);
+
+    const existing = existingRows[0];
+
+    const enabled = payload.enabled ?? existing?.enabled ?? false;
+
+    const bookingLabel =
+      payload.bookingLabel !== undefined
+        ? cleanOptionalText(payload.bookingLabel) ?? null
+        : existing?.bookingLabel ?? null;
+
+    const instructions =
+      payload.instructions !== undefined
+        ? cleanOptionalText(payload.instructions) ?? null
+        : existing?.instructions ?? null;
+
+    const minimumAdvanceMinutes =
+      payload.minimumAdvanceMinutes !== undefined
+        ? payload.minimumAdvanceMinutes
+        : existing?.minimumAdvanceMinutes ?? null;
+
+    const maximumAdvanceDays =
+      payload.maximumAdvanceDays !== undefined
+        ? payload.maximumAdvanceDays
+        : existing?.maximumAdvanceDays ?? null;
+
+    const updatedAt = new Date();
+
     const updated = await db
       .insert(businessBookingSettings)
-      .values(values)
+      .values({
+        businessId,
+        enabled,
+        bookingLabel,
+        instructions,
+        minimumAdvanceMinutes,
+        maximumAdvanceDays,
+        updatedAt,
+      })
       .onConflictDoUpdate({
         target: businessBookingSettings.businessId,
-        set: values,
+        set: {
+          enabled,
+          bookingLabel,
+          instructions,
+          minimumAdvanceMinutes,
+          maximumAdvanceDays,
+          updatedAt,
+        },
       })
       .returning();
 
-    if (!updated[0]) throw new Error("Booking settings could not be updated");
+    if (!updated[0]) {
+      throw new Error("Booking settings could not be updated");
+    }
+
     return updated[0];
   },
 
@@ -200,8 +374,7 @@ export const businessBookingsService = {
             when ${businessBookingRequests.status} = 'accepted' and ${effectiveDate} >= now()
             then ${effectiveDate}
           end asc nulls last`,
-          desc(businessBookingRequests.updatedAt),
-          asc(businessBookingRequests.createdAt),
+          desc(businessBookingRequests.createdAt),
         )
         .limit(query.limit)
         .offset(offset),

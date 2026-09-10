@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
 import { businessTeamMembers } from "../../db/schema/businesses.schema.js";
 import { BusinessAccessItem, BusinessMeResponse } from "./businessAccess.types.js";
@@ -23,6 +23,25 @@ export const businessAccessService = {
         role: row.role as BusinessAccessItem["role"],
         status: row.status,
       }));
+  },
+
+  async isActiveBusinessMember(
+    userId: string,
+    businessId: string,
+  ): Promise<boolean> {
+    const rows = await db
+      .select({ id: businessTeamMembers.id })
+      .from(businessTeamMembers)
+      .where(
+        and(
+          eq(businessTeamMembers.userId, userId),
+          eq(businessTeamMembers.businessId, businessId),
+          eq(businessTeamMembers.status, "active"),
+        ),
+      )
+      .limit(1);
+
+    return Boolean(rows[0]);
   },
 
   async getMe(userId: string): Promise<BusinessMeResponse> {

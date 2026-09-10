@@ -16,6 +16,14 @@ export const BusinessBookingRequestParamsSchema = BusinessBookingParamsSchema.ex
   bookingId: z.string().uuid(),
 });
 
+export const BusinessBookingCreateSchema = z.object({
+  serviceId: z.string().uuid().nullable().optional(),
+  requestType: z.string().trim().min(1).max(160).nullable().optional(),
+  preferredDate: z.coerce.date(),
+  partySize: z.number().int().min(1).max(100).nullable().optional(),
+  message: z.string().trim().max(1000).nullable().optional(),
+});
+
 export const BusinessBookingSettingsUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -67,6 +75,9 @@ export const BusinessBookingNoteUpdateSchema = z.object({
   ownerNote: z.string().trim().max(1000).nullable(),
 });
 
+export type BusinessBookingCreate = z.infer<
+  typeof BusinessBookingCreateSchema
+>;
 export type BusinessBookingSettingsUpdate = z.infer<
   typeof BusinessBookingSettingsUpdateSchema
 >;

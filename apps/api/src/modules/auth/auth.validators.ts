@@ -52,6 +52,15 @@ export const GoogleLoginSchema = z.object({
   idToken: z.string().trim().min(20),
 });
 
+export const UpdateProfileSchema = z
+  .object({
+    fullName: SignUpSchema.shape.fullName.optional(),
+    phone: SignUpSchema.shape.phone.optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "Choose at least one profile field to update",
+  });
+
 export type SignUpSchemaType = z.infer<typeof SignUpSchema>;
 export type LoginSchemaType = z.infer<typeof LoginSchema>;
 export type VerifyEmailSchemaType = z.infer<typeof VerifyEmailSchema>;
@@ -61,3 +70,4 @@ export type ForgotPasswordSchemaType = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>;
 export type RefreshSessionSchemaType = z.infer<typeof RefreshSessionSchema>;
 export type GoogleLoginSchemaType = z.infer<typeof GoogleLoginSchema>;
+export type UpdateProfileSchemaType = z.infer<typeof UpdateProfileSchema>;

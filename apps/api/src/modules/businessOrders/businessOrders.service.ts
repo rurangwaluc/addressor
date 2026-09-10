@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
+import { businessAccessService } from "../businessAccess/businessAccess.service.js";
 import {
   businessOrderItems,
   businessOrderRequests,
@@ -13,6 +14,7 @@ import {
 import { BusinessCapabilityDisabledError } from "../businessCapabilities/businessCapabilities.errors.js";
 import {
   OrderNotFoundError,
+  OrderOwnBusinessRequestError,
   OrderRequestsDisabledError,
   OrderStatusConflictError,
 } from "./businessOrders.errors.js";
@@ -106,6 +108,15 @@ function statusConflictMessage(currentStatus: string) {
 
 export const businessOrdersService = {
   async createCustomerOrder(user: AuthUser, businessId: string, payload: BusinessOrderCreate) {
+    if (
+      await businessAccessService.isActiveBusinessMember(
+        user.id,
+        businessId,
+      )
+    ) {
+      throw new OrderOwnBusinessRequestError();
+    }
+
     if (!(await isBusinessCapabilityEnabled(businessId, "orders"))) {
       throw new BusinessCapabilityDisabledError("orders");
     }
