@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  Star,
 } from "lucide-react";
 
 const API_BASE =
@@ -102,6 +103,38 @@ type ServicesResponse = {
     services: PublicService[];
     pagination: {
       total: number;
+    };
+  };
+};
+
+type PublicReview = {
+  id: string;
+  customerName: string;
+  rating: number;
+  body: string | null;
+  interactionType: "order" | "booking";
+  ownerReply: string | null;
+  ownerRepliedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type PublicReviewsResponse = {
+  ok: true;
+  data: {
+    summary: {
+      reviewCount: number;
+      averageRating: number | null;
+      distribution: Record<1 | 2 | 3 | 4 | 5, number>;
+    };
+    reviews: PublicReview[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasPreviousPage: boolean;
+      hasNextPage: boolean;
     };
   };
 };
@@ -231,6 +264,44 @@ function formatPrice(service: PublicService) {
   return `${service.currency} ${amount}`;
 }
 
+function formatReviewDate(value: string) {
+  return new Intl.DateTimeFormat("en-RW", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function PublicStars({
+  rating,
+  size = 16,
+}: {
+  rating: number;
+  size?: number;
+}) {
+  return (
+    <div
+      className="flex items-center gap-0.5"
+      aria-label={`${rating} out of 5 stars`}
+    >
+      {[1, 2, 3, 4, 5].map((value) => (
+        <Star
+          key={value}
+          size={size}
+          fill={value <= rating ? "currentColor" : "none"}
+          aria-hidden="true"
+          style={{
+            color:
+              value <= rating
+                ? "var(--accent)"
+                : "color-mix(in srgb, var(--muted) 42%, transparent)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function ActionLink({
   href,
   children,
@@ -304,16 +375,22 @@ export default async function PublicPlacePage({
 
   const { business, capabilities, booking, ordering } = response.data;
 
-  const [menuResult, servicesResult] = await Promise.allSettled([
-    capabilities.menu
-      ? fetchPublic<MenuResponse>(`/businesses/${business.id}/menu/public`)
-      : Promise.resolve(null),
-    capabilities.services
-      ? fetchPublic<ServicesResponse>(
-          `/businesses/${business.id}/services/public?page=1&limit=20`,
-        )
-      : Promise.resolve(null),
-  ]);
+  const [menuResult, servicesResult, reviewsResult] =
+    await Promise.allSettled([
+      capabilities.menu
+        ? fetchPublic<MenuResponse>(`/businesses/${business.id}/menu/public`)
+        : Promise.resolve(null),
+      capabilities.services
+        ? fetchPublic<ServicesResponse>(
+            `/businesses/${business.id}/services/public?page=1&limit=20`,
+          )
+        : Promise.resolve(null),
+      fetchPublic<PublicReviewsResponse>(
+        `/businesses/public/${encodeURIComponent(
+          business.slug,
+        )}/reviews?page=1&limit=10`,
+      ),
+    ]);
 
   const menu =
     menuResult.status === "fulfilled" ? menuResult.value?.data.menu ?? null : null;
@@ -322,6 +399,9 @@ export default async function PublicPlacePage({
     servicesResult.status === "fulfilled"
       ? servicesResult.value?.data.services ?? []
       : [];
+
+  const reviewsData =
+    reviewsResult.status === "fulfilled" ? reviewsResult.value.data : null;
 
   const phone = cleanPhone(business.phone);
   const whatsapp = whatsappLink(business);
@@ -452,6 +532,24 @@ export default async function PublicPlacePage({
                   />
                   Checked place
                 </span>
+
+                {reviewsData?.summary.reviewCount ? (
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-black"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    <Star
+                      size={14}
+                      fill="currentColor"
+                      aria-hidden="true"
+                      style={{ color: "var(--accent)" }}
+                    />
+                    {reviewsData.summary.averageRating?.toFixed(1)} / 5
+                    <span aria-hidden="true">·</span>
+                    {reviewsData.summary.reviewCount}{" "}
+                    {reviewsData.summary.reviewCount === 1 ? "review" : "reviews"}
+                  </span>
+                ) : null}
               </div>
 
               <h1 className="mt-2 max-w-4xl text-3xl font-black leading-[1.06] tracking-[-0.045em] sm:text-4xl lg:text-[2.8rem] xl:text-5xl">
@@ -800,6 +898,202 @@ export default async function PublicPlacePage({
             </section>
           </aside>
         </div>
+
+            {reviewsData ? (
+              <section className="mt-10 min-w-0">
+                <div
+                  className="flex flex-wrap items-end justify-between gap-3 border-b pb-4"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  <div>
+                    <p
+                      className="text-xs font-black uppercase tracking-[0.16em]"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      Reviews
+                    </p>
+
+                    <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+                      Verified customer experiences
+                    </h2>
+                  </div>
+
+                  {reviewsData.summary.reviewCount > 0 ? (
+                    <div className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-2xl font-black tracking-[-0.04em]">
+                          {reviewsData.summary.averageRating?.toFixed(1)}
+                        </span>
+                        <Star
+                          size={19}
+                          fill="currentColor"
+                          aria-hidden="true"
+                          style={{ color: "var(--accent)" }}
+                        />
+                      </div>
+                      <p
+                        className="mt-0.5 text-xs font-bold"
+                        style={{ color: "var(--muted)" }}
+                      >
+                        {reviewsData.summary.reviewCount} verified{" "}
+                        {reviewsData.summary.reviewCount === 1
+                          ? "experience"
+                          : "experiences"}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+
+                {reviewsData.summary.reviewCount === 0 ? (
+                  <div
+                    className="border-b py-6"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <p className="text-sm font-black">
+                      No verified reviews yet
+                    </p>
+                    <p
+                      className="mt-1 max-w-xl text-sm font-semibold leading-6"
+                      style={{ color: "var(--muted)" }}
+                    >
+                      Reviews appear after customers complete an Addressor
+                      order or booking.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid gap-6 py-5 md:grid-cols-[14rem_minmax(0,1fr)]">
+                      <div>
+                        <p
+                          className="text-xs font-black uppercase tracking-[0.12em]"
+                          style={{ color: "var(--muted)" }}
+                        >
+                          Rating breakdown
+                        </p>
+
+                        <div className="mt-3 space-y-2">
+                          {([5, 4, 3, 2, 1] as const).map((rating) => {
+                            const count =
+                              reviewsData.summary.distribution[rating] ?? 0;
+                            const percent =
+                              reviewsData.summary.reviewCount > 0
+                                ? Math.round(
+                                    (count /
+                                      reviewsData.summary.reviewCount) *
+                                      100,
+                                  )
+                                : 0;
+
+                            return (
+                              <div
+                                key={rating}
+                                className="grid grid-cols-[2rem_minmax(0,1fr)_1.8rem] items-center gap-2"
+                              >
+                                <span className="text-xs font-black">
+                                  {rating} ★
+                                </span>
+
+                                <div
+                                  className="h-1.5 overflow-hidden rounded-full"
+                                  style={{
+                                    background: "var(--surface-strong)",
+                                  }}
+                                >
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${percent}%`,
+                                      background: "var(--accent)",
+                                    }}
+                                  />
+                                </div>
+
+                                <span
+                                  className="text-right text-xs font-bold"
+                                  style={{ color: "var(--muted)" }}
+                                >
+                                  {count}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <p
+                        className="text-sm font-semibold leading-6"
+                        style={{ color: "var(--muted)" }}
+                      >
+                        Every review is linked to a completed Addressor order
+                        or booking. Businesses can reply, but cannot change
+                        customer ratings or feedback.
+                      </p>
+                    </div>
+
+                    <div
+                      className="divide-y divide-[var(--border)] border-t"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      {reviewsData.reviews.map((review) => (
+                        <article key={review.id} className="py-5 first:pt-5">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-black">
+                                {review.customerName}
+                              </p>
+
+                              <p
+                                className="mt-0.5 text-xs font-bold"
+                                style={{ color: "var(--success)" }}
+                              >
+                                Verified{" "}
+                                {review.interactionType === "order"
+                                  ? "order"
+                                  : "booking"}{" "}
+                                / {formatReviewDate(review.createdAt)}
+                              </p>
+                            </div>
+
+                            <PublicStars rating={review.rating} />
+                          </div>
+
+                          {review.body ? (
+                            <p className="mt-3 whitespace-pre-wrap break-words text-sm font-semibold leading-7">
+                              {review.body}
+                            </p>
+                          ) : (
+                            <p
+                              className="mt-3 text-sm font-semibold"
+                              style={{ color: "var(--muted)" }}
+                            >
+                              {review.rating}-star rating
+                            </p>
+                          )}
+
+                          {review.ownerReply ? (
+                            <div
+                              className="mt-4 border-l-2 pl-4"
+                              style={{ borderColor: "var(--accent)" }}
+                            >
+                              <p
+                                className="text-xs font-black uppercase tracking-[0.1em]"
+                                style={{ color: "var(--muted)" }}
+                              >
+                                Response from {business.displayName}
+                              </p>
+
+                              <p className="mt-1.5 whitespace-pre-wrap break-words text-sm font-semibold leading-6">
+                                {review.ownerReply}
+                              </p>
+                            </div>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </section>
+            ) : null}
       </div>
 
       <footer

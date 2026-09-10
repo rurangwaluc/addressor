@@ -36,7 +36,7 @@ type OwnerSummary = {
     profileViews: number;
     newBookings: number;
     reviews: number;
-    comments: number;
+    reviewReplies: number;
     hasPublishedMenu: boolean;
     subscribers: number;
   };
@@ -685,7 +685,7 @@ export default function BusinessDashboardPage() {
             <ActivityCard
               label="Reviews"
               value={summary.overview.reviews}
-              detail={`${formatNumber(summary.overview.comments)} review comment${summary.overview.comments === 1 ? "" : "s"}`}
+              detail={`${formatNumber(summary.overview.reviewReplies)} review repl${summary.overview.reviewReplies === 1 ? "y" : "ies"}`}
               action="Read reviews"
               scope="All-time total"
               href="/business-reviews"

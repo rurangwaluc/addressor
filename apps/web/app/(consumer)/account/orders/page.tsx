@@ -9,6 +9,10 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import CustomerReviewSection, {
+  type CustomerReview,
+  type ReviewEligibility,
+} from "@/components/account/CustomerReviewSection";
 import {
   RequestDetailRow,
   RequestDetailSection,
@@ -51,6 +55,8 @@ type Order = {
   updatedAt: string;
   business: Business;
   items: OrderItem[];
+  review?: CustomerReview | null;
+  reviewEligibility?: ReviewEligibility;
 };
 
 type ListResponse = {
@@ -519,6 +525,28 @@ export default function CustomerOrdersPage() {
                   ))}
                 </dl>
               </RequestDetailSection>
+
+              <CustomerReviewSection
+                source="order"
+                requestId={selectedOrder.id}
+                businessName={selectedOrder.business.displayName}
+                review={selectedOrder.review}
+                eligibility={selectedOrder.reviewEligibility}
+                onSaved={(review) => {
+                  setSelectedOrder((current) =>
+                    current
+                      ? {
+                          ...current,
+                          review,
+                          reviewEligibility: {
+                            canReview: false,
+                            reason: "already_reviewed",
+                          },
+                        }
+                      : current,
+                  );
+                }}
+              />
 
               <RequestDetailSection label="Business">
                 <div className="flex min-w-0 items-start gap-3">

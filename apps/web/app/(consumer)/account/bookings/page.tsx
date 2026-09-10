@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import CustomerReviewSection, {
+  type CustomerReview,
+  type ReviewEligibility,
+} from "@/components/account/CustomerReviewSection";
 import {
   RequestDetailRow,
   RequestDetailSection,
@@ -42,6 +46,8 @@ type Booking = {
   createdAt: string;
   updatedAt: string;
   business: Business;
+  review?: CustomerReview | null;
+  reviewEligibility?: ReviewEligibility;
 };
 
 type ListResponse = {
@@ -476,6 +482,28 @@ export default function CustomerBookingsPage() {
                   )}
                 </dl>
               </RequestDetailSection>
+
+              <CustomerReviewSection
+                source="booking"
+                requestId={selectedBooking.id}
+                businessName={selectedBooking.business.displayName}
+                review={selectedBooking.review}
+                eligibility={selectedBooking.reviewEligibility}
+                onSaved={(review) => {
+                  setSelectedBooking((current) =>
+                    current
+                      ? {
+                          ...current,
+                          review,
+                          reviewEligibility: {
+                            canReview: false,
+                            reason: "already_reviewed",
+                          },
+                        }
+                      : current,
+                  );
+                }}
+              />
 
               <RequestDetailSection label="Business">
                 <div className="flex min-w-0 items-start gap-3">

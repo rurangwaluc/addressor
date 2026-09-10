@@ -6,7 +6,10 @@ import {
   inArray,
 } from "drizzle-orm";
 import { db } from "../../app/plugins/db.plugin.js";
-import { businessBookingRequests } from "../../db/schema/business-account.schema.js";
+import {
+  businessBookingRequests,
+  businessReviews,
+} from "../../db/schema/business-account.schema.js";
 import {
   businessOrderItems,
   businessOrderRequests,
@@ -43,6 +46,46 @@ function mapOrderItem(row: OrderItemRow) {
     customerNote: row.customerNote,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt,
+  };
+}
+
+function mapCustomerReview(
+  row: typeof businessReviews.$inferSelect,
+) {
+  return {
+    id: row.id,
+    rating: row.rating,
+    body: row.body,
+    status: row.status,
+    ownerReply: row.ownerReply,
+    ownerRepliedAt: row.ownerRepliedAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function reviewEligibility(
+  status: string,
+  completedAt: Date | null,
+  hasReview: boolean,
+) {
+  if (hasReview) {
+    return {
+      canReview: false,
+      reason: "already_reviewed" as const,
+    };
+  }
+
+  if (status === "completed" && completedAt) {
+    return {
+      canReview: true,
+      reason: "eligible" as const,
+    };
+  }
+
+  return {
+    canReview: false,
+    reason: "not_completed" as const,
   };
 }
 
@@ -154,7 +197,25 @@ export const customerAccountService = {
       throw new BookingNotFoundError();
     }
 
-    return { booking };
+    const reviewRows = await db
+      .select()
+      .from(businessReviews)
+      .where(eq(businessReviews.bookingRequestId, booking.id))
+      .limit(1);
+
+    const review = reviewRows[0] ?? null;
+
+    return {
+      booking: {
+        ...booking,
+        review: review ? mapCustomerReview(review) : null,
+        reviewEligibility: reviewEligibility(
+          booking.status,
+          booking.completedAt,
+          Boolean(review),
+        ),
+      },
+    };
   },
 
   async listOrders(
@@ -247,10 +308,24 @@ export const customerAccountService = {
       .where(eq(businessOrderItems.orderId, order.id))
       .orderBy(businessOrderItems.sortOrder);
 
+    const reviewRows = await db
+      .select()
+      .from(businessReviews)
+      .where(eq(businessReviews.orderRequestId, order.id))
+      .limit(1);
+
+    const review = reviewRows[0] ?? null;
+
     return {
       order: {
         ...order,
         items: items.map(mapOrderItem),
+        review: review ? mapCustomerReview(review) : null,
+        reviewEligibility: reviewEligibility(
+          order.status,
+          order.completedAt,
+          Boolean(review),
+        ),
       },
     };
   },

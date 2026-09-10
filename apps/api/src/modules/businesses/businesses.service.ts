@@ -4,7 +4,6 @@ import {
   businessBookingRequests,
   businessBookingSettings,
   businessProfileViews,
-  businessReviewComments,
   businessReviews,
   businessUpdateSubscribers,
 } from "../../db/schema/business-account.schema.js";
@@ -146,6 +145,20 @@ async function countBusinessRows(table: any, businessId: string) {
     .select({ value: count() })
     .from(table)
     .where(eq(table.businessId, businessId));
+
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function countBusinessReviewReplies(businessId: string) {
+  const rows = await db
+    .select({ value: count() })
+    .from(businessReviews)
+    .where(
+      and(
+        eq(businessReviews.businessId, businessId),
+        isNotNull(businessReviews.ownerReply),
+      ),
+    );
 
   return Number(rows[0]?.value ?? 0);
 }
@@ -453,7 +466,7 @@ export const businessesService = {
       profileViews,
       newBookings,
       reviews,
-      comments,
+      reviewReplies,
       publishedMenus,
       subscribers,
     ] = await Promise.all([
@@ -462,7 +475,7 @@ export const businessesService = {
         ? countBusinessRowsByStatus(businessBookingRequests, businessId, "new")
         : Promise.resolve(0),
       countBusinessRows(businessReviews, businessId),
-      countBusinessRows(businessReviewComments, businessId),
+      countBusinessReviewReplies(businessId),
       capabilities.menu
         ? countBusinessRowsByStatus(businessMenus, businessId, "published")
         : Promise.resolve(0),
@@ -519,7 +532,7 @@ export const businessesService = {
         profileViews,
         newBookings,
         reviews,
-        comments,
+        reviewReplies,
         hasPublishedMenu,
         subscribers,
       },

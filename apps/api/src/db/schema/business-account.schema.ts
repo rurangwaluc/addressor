@@ -12,6 +12,7 @@ import {
 import { sql } from "drizzle-orm";
 import { businesses } from "./businesses.schema.js";
 import { users } from "./users.schema.js";
+import { businessOrderRequests } from "./business-orders.schema.js";
 
 export const businessProfileViews = pgTable("business_profile_views", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -28,24 +29,65 @@ export const businessProfileViews = pgTable("business_profile_views", {
   viewedAt: timestamp("viewed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const businessReviews = pgTable("business_reviews", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  businessId: uuid("business_id")
-    .notNull()
-    .references(() => businesses.id, { onDelete: "cascade" }),
-  customerUserId: uuid("customer_user_id").references(() => users.id, {
-    onDelete: "set null",
+export const businessReviews = pgTable(
+  "business_reviews",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    businessId: uuid("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    customerUserId: uuid("customer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    customerName: text("customer_name"),
+    orderRequestId: uuid("order_request_id").references(
+      () => businessOrderRequests.id,
+      { onDelete: "cascade" },
+    ),
+    bookingRequestId: uuid("booking_request_id").references(
+      () => businessBookingRequests.id,
+      { onDelete: "cascade" },
+    ),
+    rating: integer("rating").notNull(),
+    title: text("title"),
+    body: text("body"),
+    status: text("status").notNull().default("published"),
+    ownerReply: text("owner_reply"),
+    ownerRepliedAt: timestamp("owner_replied_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    ratingCheck: check(
+      "business_reviews_rating_check",
+      sql`${table.rating} between 1 and 5`,
+    ),
+    statusCheck: check(
+      "business_reviews_status_check",
+      sql`${table.status} in ('published', 'hidden')`,
+    ),
+    sourceCheck: check(
+      "business_reviews_source_check",
+      sql`(
+        (${table.orderRequestId} is not null and ${table.bookingRequestId} is null)
+        or
+        (${table.orderRequestId} is null and ${table.bookingRequestId} is not null)
+      )`,
+    ),
+    orderRequestUnique: unique(
+      "business_reviews_order_request_unique",
+    ).on(table.orderRequestId),
+    bookingRequestUnique: unique(
+      "business_reviews_booking_request_unique",
+    ).on(table.bookingRequestId),
+    businessStatusCreatedIndex: index(
+      "business_reviews_business_status_created_idx",
+    ).on(table.businessId, table.status, table.createdAt),
+    customerCreatedIndex: index(
+      "business_reviews_customer_created_idx",
+    ).on(table.customerUserId, table.createdAt),
   }),
-  customerName: text("customer_name"),
-  rating: integer("rating").notNull(),
-  title: text("title"),
-  body: text("body"),
-  status: text("status").notNull().default("pending"),
-  ownerReply: text("owner_reply"),
-  ownerRepliedAt: timestamp("owner_replied_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+);
 
 export const businessReviewComments = pgTable("business_review_comments", {
   id: uuid("id").defaultRandom().primaryKey(),

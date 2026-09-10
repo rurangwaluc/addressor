@@ -45,7 +45,7 @@ export type BusinessOwnerSummaryResponse = {
     profileViews: number;
     newBookings: number;
     reviews: number;
-    comments: number;
+    reviewReplies: number;
     hasPublishedMenu: boolean;
     subscribers: number;
   };
