@@ -41,3 +41,5 @@ ios/
 
 # misc
 coverage/
+# Next.js development build
+apps/web/.next-dev/

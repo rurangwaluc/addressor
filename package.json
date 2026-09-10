@@ -14,7 +14,7 @@
     "ios:mobile": "pnpm --filter @addressor/mobile ios",
     "web:mobile": "pnpm --filter @addressor/mobile web",
     "check:api": "pnpm --filter @addressor/api build",
-    "check:web": "pnpm --filter @addressor/web build",
+    "check:web": "env -u NODE_ENV pnpm --filter @addressor/web build",
     "check:mobile": "pnpm --filter @addressor/mobile exec tsc --noEmit",
     "check": "pnpm check:api && pnpm check:web && pnpm check:mobile"
   }

@@ -162,14 +162,8 @@ export default function RequireAccess({
   mode = "auth",
 }: RequireAccessProps) {
   const router = useRouter();
-  const [state, setState] = useState<AccessState>(() => {
-    const cachedAccess = getStoredAccessContext();
-
-    if (cachedAccess && canUseAccessForMode(cachedAccess, mode)) {
-      return { status: "allowed", access: cachedAccess };
-    }
-
-    return { status: "checking" };
+  const [state, setState] = useState<AccessState>({
+    status: "checking",
   });
 
   useEffect(() => {
